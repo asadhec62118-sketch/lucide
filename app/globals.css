@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Palette et typographie LUCIDE — thème sombre uniquement */
+@theme {
+  --color-fond: #0e0e10;
+  --color-surface: #18181b;
+  --color-surface-2: #222226;
+  --color-bord: #2a2a2f;
+  --color-ambre: #f5a524;
+  --color-ambre-fonce: #c9861a;
+  --color-vert: #3fb68b;
+  --color-texte: #fafafa;
+  --color-texte-2: #a1a1aa;
+  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  color-scheme: dark;
+  /* Hauteur de la barre de navigation basse (hors zone de sécurité iOS) */
+  --hauteur-nav: 4.25rem;
+}
+
+html,
+body {
+  background: var(--color-fond);
+  color: var(--color-texte);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100dvh;
+}
+
+/* Chiffres à chasse fixe : le compteur ne « danse » pas chaque seconde */
+.chiffres {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Zones de sécurité (encoche, barre d'accueil iOS) */
+.pb-securite {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-securite {
+  padding-top: env(safe-area-inset-top);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ambre);
+  outline-offset: 2px;
+}
+
+/* Respiration 4-7-8 : le cercle suit la phase via une transition CSS */
+.cercle-respiration {
+  transition-property: transform, background-color, box-shadow;
+  transition-timing-function: ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cercle-respiration {
+    transition-duration: 0s !important;
+  }
+}
