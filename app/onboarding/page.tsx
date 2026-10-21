@@ -280,7 +280,7 @@ function EtapeCompte() {
     });
     setEnvoi(false);
     if (error) return setErreur(traduireErreur(error.message));
-    if (data.session) router.replace("/");
+    if (data.session) router.replace("/offre");
     else setMessage("Vérifie ta boîte mail pour confirmer ton adresse. Ton compteur tourne déjà.");
   }
 
@@ -338,7 +338,7 @@ function EtapeCompte() {
       )}
 
       <div className="mt-auto pt-8 pb-6 text-center">
-        <Bouton variante={message ? "ambre" : "discret"} onClick={() => router.replace("/")} className="w-full">
+        <Bouton variante={message ? "ambre" : "discret"} onClick={() => router.replace("/offre")} className="w-full">
           {message ? "Aller à mon compteur" : "Plus tard, aller à mon compteur"}
         </Bouton>
         <p className="mt-4 text-xs text-texte-2">{MENTION_LEGALE}</p>

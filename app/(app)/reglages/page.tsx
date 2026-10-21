@@ -7,16 +7,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { BlocAide } from "@/components/BlocAide";
+import { ChoixFormules, usePaiement } from "@/components/Offre";
 import { ReglageRappels } from "@/components/Rappels";
 import { SelecteurNombre } from "@/components/SelecteurNombre";
 import { Bouton, Carte, Chargement, Interrupteur, LienBouton, TitrePage } from "@/components/ui";
 import { enregistrerReprise, modifierProfil } from "@/lib/actions";
 import { SUGGESTIONS_FOI, TARIFS } from "@/lib/constants";
 import { useEtatAvecProfil } from "@/lib/hooks";
-import type { Profil } from "@/lib/store";
 import { estAbonne } from "@/lib/stats";
-import { modifierEtat, type Etat } from "@/lib/store";
-import { jetonAcces, supabaseNavigateur } from "@/lib/supabase/client";
+import { modifierEtat, type Etat, type Profil } from "@/lib/store";
+import { supabaseNavigateur } from "@/lib/supabase/client";
 import { synchroniser } from "@/lib/sync";
 
 /** Session Supabase courante (null si non connecté ou Supabase non configuré). */
@@ -155,34 +155,8 @@ function BlocCompte({ session }: { session: Session | null }) {
 }
 
 function BlocAbonnement({ etat, session, retour }: { etat: Etat; session: Session | null; retour: string | null }) {
-  const [chargement, setChargement] = useState<string | null>(null);
-  const [erreur, setErreur] = useState<string | null>(null);
+  const { chargement, erreur, sAbonner, gerer } = usePaiement("/reglages#abonnement");
   const abonne = estAbonne(etat);
-
-  async function appeler(route: string, corps?: object) {
-    setErreur(null);
-    if (!navigator.onLine) return setErreur("Tu es hors ligne. Réessaie une fois connecté·e.");
-    const jeton = await jetonAcces();
-    if (!jeton) {
-      window.location.href = "/connexion?suite=/reglages";
-      return;
-    }
-    setChargement(route);
-    try {
-      const rep = await fetch(route, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${jeton}` },
-        body: JSON.stringify(corps ?? {}),
-      });
-      const json = (await rep.json()) as { url?: string; erreur?: string };
-      if (json.url) window.location.href = json.url;
-      else setErreur(json.erreur ?? "Une erreur est survenue.");
-    } catch {
-      setErreur("Impossible de joindre le serveur.");
-    } finally {
-      setChargement(null);
-    }
-  }
 
   const statut = etat.abonnement.statut;
   const libelleStatut: Record<string, string> = {
@@ -213,45 +187,21 @@ function BlocAbonnement({ etat, session, retour }: { etat: Etat; session: Sessio
             {etat.abonnement.formule && ` · formule ${etat.abonnement.formule}`}
             {fin && ` · jusqu'au ${fin}`}
           </p>
-          <Bouton variante="surface" onClick={() => appeler("/api/stripe/portail")} disabled={!!chargement} className="mt-4 w-full">
+          <Bouton variante="surface" onClick={gerer} disabled={!!chargement} className="mt-4 w-full">
             {chargement ? "Ouverture…" : "Gérer mon abonnement"}
           </Bouton>
         </>
       ) : (
         <>
           <p className="mt-1 text-sm text-texte-2">
-            Mode Envie illimité, parcours complet jusqu&apos;à J90 et tes schémas personnels.
+            Le programme complet de 30 jours, le Mode Envie illimité, le parcours jusqu&apos;à J90, tes bilans et tes
+            schémas personnels.
           </p>
           {statut !== "free" && libelleStatut[statut] && (
             <p className="mt-2 text-xs text-ambre">{libelleStatut[statut]}</p>
           )}
-          <div className="mt-4 grid gap-3">
-            <button
-              type="button"
-              disabled={!!chargement}
-              onClick={() => appeler("/api/stripe/checkout", { formule: "annuel" })}
-              className="relative rounded-2xl border-2 border-ambre bg-ambre/10 p-4 text-left transition hover:bg-ambre/15 disabled:opacity-50"
-            >
-              <span className="absolute -top-2.5 right-4 rounded-full bg-ambre px-2 py-0.5 text-[11px] font-bold text-fond">
-                LE PLUS AVANTAGEUX
-              </span>
-              <span className="flex items-baseline justify-between">
-                <span className="font-semibold">Annuel</span>
-                <span className="chiffres text-lg font-bold">{TARIFS.annuel.montant}<span className="text-sm font-normal text-texte-2"> / an</span></span>
-              </span>
-              <span className="mt-1 block text-xs text-texte-2">{TARIFS.annuel.note}</span>
-            </button>
-            <button
-              type="button"
-              disabled={!!chargement}
-              onClick={() => appeler("/api/stripe/checkout", { formule: "mensuel" })}
-              className="rounded-2xl border border-bord bg-surface-2 p-4 text-left transition hover:border-texte-2/40 disabled:opacity-50"
-            >
-              <span className="flex items-baseline justify-between">
-                <span className="font-semibold">Mensuel</span>
-                <span className="chiffres text-lg font-bold">{TARIFS.mensuel.montant}<span className="text-sm font-normal text-texte-2"> / mois</span></span>
-              </span>
-            </button>
+          <div className="mt-4">
+            <ChoixFormules onChoisir={sAbonner} desactive={!!chargement} />
           </div>
           <p className="mt-3 text-center text-xs text-texte-2">
             {TARIFS.essaiJours} jours d&apos;essai gratuit, sans engagement. {!session && "Un compte est nécessaire."}

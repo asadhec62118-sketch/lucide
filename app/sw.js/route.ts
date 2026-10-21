@@ -7,7 +7,7 @@ export const dynamic = "force-static";
 const VERSION = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12) ?? String(Date.now());
 
 // Pages pré-chargées à l'installation : elles restent disponibles hors ligne.
-const PAGES = ["/", "/envie", "/journal", "/parcours", "/programme", "/reglages", "/reprise", "/onboarding", "/connexion"];
+const PAGES = ["/", "/envie", "/journal", "/parcours", "/programme", "/reglages", "/reprise", "/onboarding", "/connexion", "/offre"];
 const FICHIERS = [
   "/manifest.json",
   "/icons/icon-192.png",
