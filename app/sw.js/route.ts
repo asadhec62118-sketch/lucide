@@ -114,6 +114,40 @@ self.addEventListener("fetch", (event) => {
     return enCache || (await reseau) || new Response("", { status: 504 });
   })());
 });
+
+// Rappels : affichage de la notification envoyée par le serveur.
+self.addEventListener("push", (event) => {
+  let message = {};
+  try {
+    message = event.data ? event.data.json() : {};
+  } catch (e) {
+    message = { corps: event.data ? event.data.text() : "" };
+  }
+  event.waitUntil(self.registration.showNotification(message.titre || "LUCIDE", {
+    body: message.corps || "",
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    lang: "fr",
+    data: { url: message.url || "/" },
+  }));
+});
+
+// Toucher la notification ouvre LUCIDE sur la bonne page.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil((async () => {
+    const fenetres = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const fenetre of fenetres) {
+      if ("focus" in fenetre) {
+        await fenetre.focus();
+        if ("navigate" in fenetre) await fenetre.navigate(url);
+        return;
+      }
+    }
+    await self.clients.openWindow(url);
+  })());
+});
 `;
 
 export function GET() {

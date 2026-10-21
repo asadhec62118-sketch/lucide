@@ -6,6 +6,7 @@
 //   au retour sur l'application et à chaque changement de session.
 
 import { useEffect } from "react";
+import { actualiserRappels } from "@/lib/notifications/client";
 import { synchroniser } from "@/lib/sync";
 import { supabaseNavigateur } from "@/lib/supabase/client";
 
@@ -16,6 +17,7 @@ export function Demarrage() {
     }
 
     void synchroniser();
+    void actualiserRappels();
     const auRetourEnLigne = () => void synchroniser();
     const auRetourVisible = () => {
       if (document.visibilityState === "visible") void synchroniser();

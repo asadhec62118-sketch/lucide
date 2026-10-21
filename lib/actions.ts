@@ -4,6 +4,7 @@
 // marque les éléments à synchroniser, puis tente une synchronisation.
 
 import { lireEtat, modifierEtat, nouvelId, type Envie, type Profil } from "./store";
+import { actualiserRappels } from "./notifications/client";
 import { synchroniser } from "./sync";
 import { joursDepuis, MS } from "./temps";
 
@@ -13,12 +14,13 @@ function maintenantISO() {
 
 /** Fin de l'onboarding : création du profil local. */
 export function creerProfil(
-  p: Omit<Profil, "majLe" | "totalJoursPropres" | "modeFoi" | "rappelsFoi" | "modeSport">,
+  p: Omit<Profil, "majLe" | "totalJoursPropres" | "modeFoi" | "rappelsFoi" | "modeSport" | "pourquoi">,
 ) {
   modifierEtat((e) => ({
     ...e,
     profil: {
       ...p,
+      pourquoi: "",
       totalJoursPropres: 0,
       modeFoi: false,
       rappelsFoi: [],
@@ -136,6 +138,8 @@ export function enregistrerReprise(): { repriseId: string; totalJours: number } 
     },
   }));
   void synchroniser();
+  // Les rappels suivent la nouvelle date de départ.
+  void actualiserRappels();
   return { repriseId, totalJours };
 }
 

@@ -149,3 +149,27 @@ export function jourDuProgramme(etat: Etat, maintenant = Date.now()): number {
 export function jourDebloque(etat: Etat, maintenant = Date.now()): number {
   return Math.max(etat.programme.jourMax, jourDuProgramme(etat, maintenant));
 }
+
+/** Jours du programme qui sont des bilans (Jours 7, 14, 21 et 29 du livre). */
+export const JOURS_BILAN = [7, 14, 21, 29];
+
+/** Bilan personnel calculé à partir des vraies données de la série en cours. */
+export function bilanPersonnel(etat: Etat, maintenant = Date.now()) {
+  if (!etat.profil) return null;
+  const depart = new Date(etat.profil.dateDepart).getTime();
+  const envies = etat.envies.filter((e) => new Date(e.creeLe).getTime() >= depart);
+  const semaine = envies.filter((e) => new Date(e.creeLe).getTime() >= maintenant - 7 * MS.jour);
+  const schemas = calculerSchemas(envies);
+  const regagne = ceQueTuAsRegagne(etat, maintenant);
+  return {
+    jours: joursDepuis(etat.profil.dateDepart, maintenant),
+    jointsEvites: regagne?.jointsEvites ?? null,
+    heures: regagne?.heures ?? null,
+    enviesTenues: envies.filter((e) => e.tenue).length,
+    enviesSemaine: semaine.length,
+    transformees: envies.filter((e) => e.activite).length,
+    moment: schemas.trancheHoraire,
+    declencheur: schemas.declencheurDominant,
+    actionsFaites: etat.programme.actionsFaites.length,
+  };
+}

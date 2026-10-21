@@ -16,6 +16,7 @@ type LigneProfil = {
   joints_per_day: number | null;
   reasons: string[];
   reasons_text: string;
+  why_statement: string | null;
   triggers: string[];
   start_date: string | null;
   total_clean_days: number;
@@ -49,6 +50,7 @@ function profilVersLigne(p: Profil) {
     joints_per_day: p.jointsParJour,
     reasons: p.raisons,
     reasons_text: p.raisonsTexte,
+    why_statement: p.pourquoi,
     triggers: p.declencheurs,
     start_date: p.dateDepart,
     total_clean_days: p.totalJoursPropres,
@@ -67,6 +69,7 @@ function ligneVersProfil(l: LigneProfil): Profil | null {
     jointsParJour: l.joints_per_day ?? null,
     raisons: l.reasons ?? [],
     raisonsTexte: l.reasons_text ?? "",
+    pourquoi: l.why_statement ?? "",
     declencheurs: l.triggers ?? [],
     dateDepart: l.start_date,
     totalJoursPropres: l.total_clean_days ?? 0,

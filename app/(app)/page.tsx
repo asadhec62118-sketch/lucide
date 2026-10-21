@@ -6,6 +6,7 @@
 
 import Link from "next/link";
 import { BlocAide } from "@/components/BlocAide";
+import { CarteRappels } from "@/components/Rappels";
 import { Carte, Chargement } from "@/components/ui";
 import { useEtatAvecProfil, useMaintenant } from "@/lib/hooks";
 import { TEXTE_ALCOOL } from "@/lib/constants";
@@ -90,6 +91,16 @@ export default function Accueil() {
           <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-texte-2">{jourProgramme.pensee}</p>
           <p className="mt-3 text-sm text-ambre">Lire ton jour →</p>
         </Link>
+
+        <CarteRappels />
+
+        {/* La décision du Jour 1, avec ses propres mots */}
+        {profil.pourquoi && (
+          <Carte>
+            <p className="text-xs font-semibold tracking-wide text-texte-2">TA DÉCISION</p>
+            <p className="mt-2 leading-relaxed">{profil.pourquoi}</p>
+          </Carte>
+        )}
 
         {/* Ce que tu as regagné (Jour 24 du livre) */}
         <Carte>

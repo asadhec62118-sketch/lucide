@@ -10,12 +10,12 @@ import Link from "next/link";
 import { IconeCadenas, IconeCoche } from "@/components/Icones";
 import { Chargement, TitrePage } from "@/components/ui";
 import { Verrou } from "@/components/Verrou";
-import { basculerActionProgramme, memoriserJourProgramme } from "@/lib/actions";
+import { basculerActionProgramme, memoriserJourProgramme, modifierProfil } from "@/lib/actions";
 import { JOUR_LIMITE_PROGRAMME_GRATUIT } from "@/lib/constants";
 import { useEtatAvecProfil } from "@/lib/hooks";
 import { NB_JOURS_PROGRAMME, PILIERS, PROGRAMME, pilierDuJour, type JourProgramme } from "@/lib/programme";
-import { estAbonne, jourDebloque, jourDuProgramme } from "@/lib/stats";
-import { pluriel } from "@/lib/temps";
+import { bilanPersonnel, estAbonne, JOURS_BILAN, jourDebloque, jourDuProgramme } from "@/lib/stats";
+import { argentEconomise, euros, pluriel } from "@/lib/temps";
 
 export default function Programme() {
   const etat = useEtatAvecProfil();
@@ -63,6 +63,19 @@ export default function Programme() {
             estAujourdhui={choisi === aujourdhui}
             actionFaite={actionFaite}
             onAction={() => basculerActionProgramme(choisi)}
+            pourquoi={etat.profil.pourquoi}
+            onPourquoi={(texte) => {
+              modifierProfil({ pourquoi: texte });
+              if (!actionFaite) basculerActionProgramme(1);
+            }}
+            bilan={
+              JOURS_BILAN.includes(choisi) ? (
+                <BilanPersonnel
+                  bilan={bilanPersonnel(etat)}
+                  argent={argentEconomise(etat.profil.depenseHebdo, etat.profil.dateDepart)}
+                />
+              ) : null
+            }
           />
         </div>
       </Verrou>
@@ -152,11 +165,17 @@ function FicheJour({
   estAujourdhui,
   actionFaite,
   onAction,
+  pourquoi,
+  onPourquoi,
+  bilan,
 }: {
   jour: JourProgramme;
   estAujourdhui: boolean;
   actionFaite: boolean;
   onAction: () => void;
+  pourquoi: string;
+  onPourquoi: (texte: string) => void;
+  bilan: React.ReactNode;
 }) {
   return (
     <article className="space-y-4">
@@ -171,12 +190,18 @@ function FicheJour({
         </blockquote>
       </header>
 
+      {bilan}
+
       <Bloc titre="Ce que j'ai vécu">{jour.recit}</Bloc>
       <Bloc titre="Ce que je veux te dire">{jour.message}</Bloc>
 
       <section className={`rounded-2xl border p-5 ${actionFaite ? "border-vert/50 bg-vert/10" : "border-bord bg-surface"}`}>
         <h3 className="text-sm font-semibold text-texte-2">Ton action aujourd&apos;hui</h3>
         <p className="mt-2 leading-relaxed">{jour.action}</p>
+        {/* Jour 1 : la phrase de décision est écrite ici et gardée par l'application */}
+        {jour.jour === 1 ? (
+          <PhraseDecision pourquoi={pourquoi} onEnregistrer={onPourquoi} />
+        ) : (
         <button
           type="button"
           aria-pressed={actionFaite}
@@ -188,6 +213,7 @@ function FicheJour({
           {actionFaite && <IconeCoche className="h-4 w-4" />}
           {actionFaite ? "C'est fait" : "Je l'ai fait"}
         </button>
+        )}
       </section>
 
       <Bloc titre="Pour tenir jusqu'à demain">{jour.demain}</Bloc>
@@ -200,6 +226,90 @@ function Bloc({ titre, children }: { titre: string; children: React.ReactNode })
     <section className="rounded-2xl bg-surface p-5">
       <h3 className="text-sm font-semibold text-texte-2">{titre}</h3>
       <p className="mt-2 leading-relaxed">{children}</p>
+    </section>
+  );
+}
+
+const DEBUT_DECISION = "J'arrête le cannabis, et voici pourquoi : ";
+
+/** Jour 1 : écrire sa phrase de décision. Elle revient pendant les envies et les jours difficiles. */
+function PhraseDecision({ pourquoi, onEnregistrer }: { pourquoi: string; onEnregistrer: (t: string) => void }) {
+  const [texte, setTexte] = useState(pourquoi || DEBUT_DECISION);
+  const [enregistre, setEnregistre] = useState(false);
+  const valide = texte.trim().length > DEBUT_DECISION.trim().length;
+
+  return (
+    <div className="mt-4">
+      <textarea
+        value={texte}
+        onChange={(e) => {
+          setTexte(e.target.value);
+          setEnregistre(false);
+        }}
+        rows={4}
+        maxLength={400}
+        aria-label="Ta phrase de décision"
+        className="w-full resize-none rounded-2xl border border-bord bg-surface-2 p-4 text-base leading-relaxed outline-none focus:border-ambre"
+      />
+      <button
+        type="button"
+        disabled={!valide}
+        onClick={() => {
+          onEnregistrer(texte.trim());
+          setEnregistre(true);
+        }}
+        className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-2xl bg-ambre px-4 text-sm font-semibold text-fond transition disabled:opacity-40"
+      >
+        {enregistre && <IconeCoche className="h-4 w-4" />}
+        {enregistre ? "Ta décision est gardée" : "Garder ma décision"}
+      </button>
+      <p className="mt-2 text-xs text-texte-2">
+        LUCIDE te la rappellera pendant les envies et les jours difficiles.
+      </p>
+    </div>
+  );
+}
+
+/** Bilans des Jours 7, 14, 21 et 29, remplis avec les vraies données de la personne. */
+function BilanPersonnel({ bilan, argent }: { bilan: ReturnType<typeof bilanPersonnel>; argent: number }) {
+  if (!bilan) return null;
+  const tuiles = [
+    { valeur: pluriel(bilan.jours, "jour"), libelle: "libre" },
+    { valeur: euros(argent, true), libelle: "économisés" },
+    { valeur: bilan.jointsEvites !== null ? String(bilan.jointsEvites) : "—", libelle: "joints non fumés" },
+    { valeur: String(bilan.enviesTenues), libelle: "envies traversées" },
+    { valeur: String(bilan.transformees), libelle: "envies transformées en actions" },
+    { valeur: String(bilan.actionsFaites), libelle: "actions du programme faites" },
+  ];
+  return (
+    <section className="rounded-2xl border border-vert/40 bg-vert/10 p-5">
+      <h3 className="text-sm font-semibold text-vert">Ton bilan personnel</h3>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {tuiles.map((t) => (
+          <div key={t.libelle} className="rounded-xl bg-fond/40 p-3">
+            <p className="chiffres text-xl font-bold">{t.valeur}</p>
+            <p className="text-xs text-texte-2">{t.libelle}</p>
+          </div>
+        ))}
+      </div>
+      {(bilan.moment || bilan.declencheur) && (
+        <p className="mt-3 text-sm leading-relaxed text-texte-2">
+          Tes envies arrivent surtout
+          {bilan.moment && <> entre <span className="text-texte">{bilan.moment.replace(" – ", " et ")}</span></>}
+          {bilan.declencheur && (
+            <>
+              {bilan.moment ? "," : ""} avec comme déclencheur principal{" "}
+              <span className="text-texte">{bilan.declencheur.toLowerCase()}</span>
+            </>
+          )}
+          . C&apos;est là que tu dois être le plus prêt.
+        </p>
+      )}
+      {bilan.enviesSemaine > 0 && (
+        <p className="mt-2 text-sm text-texte-2">
+          Cette semaine : {pluriel(bilan.enviesSemaine, "envie")} notée{bilan.enviesSemaine > 1 ? "s" : ""}.
+        </p>
+      )}
     </section>
   );
 }

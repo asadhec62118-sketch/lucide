@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { BlocAide } from "@/components/BlocAide";
+import { ReglageRappels } from "@/components/Rappels";
 import { SelecteurNombre } from "@/components/SelecteurNombre";
 import { Bouton, Carte, Chargement, Interrupteur, LienBouton, TitrePage } from "@/components/ui";
 import { enregistrerReprise, modifierProfil } from "@/lib/actions";
@@ -60,6 +61,8 @@ export default function Reglages() {
         <BlocCompte session={session} />
 
         <BlocAbonnement etat={etat} session={session} retour={retourPaiement} />
+
+        <ReglageRappels />
 
         <BlocReperes profil={profil} />
 

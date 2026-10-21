@@ -54,7 +54,7 @@ scripts/generer-icones.py                    régénère les icônes PNG
 ### 1. Supabase
 
 1. Crée un projet sur [supabase.com](https://supabase.com).
-2. Dans **SQL Editor**, exécute dans l'ordre `supabase/migrations/0001_schema_lucide.sql` puis `0002_regagne_activites.sql` (ou `supabase db push` avec la CLI).
+2. Dans **SQL Editor**, exécute dans l'ordre `supabase/migrations/0001_schema_lucide.sql`, `0002_regagne_activites.sql` puis `0003_pourquoi_notifications.sql` (ou `supabase db push` avec la CLI).
    - Tables `profiles`, `cravings`, `reprises`, toutes avec RLS : chaque utilisateur n'accède qu'à ses lignes.
    - Un trigger crée le profil à l'inscription.
    - Les colonnes d'abonnement (`subscription_status`, `stripe_*`…) ne sont **pas** modifiables par l'utilisateur (privilèges par colonne) : seul le webhook, avec la clé `service_role`, les écrit.
@@ -93,8 +93,16 @@ Copie `.env.example` en `.env.local` et renseigne :
 | `STRIPE_PRICE_MENSUEL` | id du prix 4,99 €/mois |
 | `STRIPE_PRICE_ANNUEL` | id du prix 34,99 €/an |
 | `NEXT_PUBLIC_SITE_URL` | URL publique (redirections) |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | clé publique des rappels (`npx web-push generate-vapid-keys`) |
+| `VAPID_PRIVATE_KEY` | clé privée des rappels, **jamais exposée** |
+| `VAPID_SUBJECT` | contact pour les services de notification (`mailto:…`) |
+| `CRON_SECRET` | secret protégeant l'envoi quotidien des rappels |
 
 Sans les variables Supabase, l'application fonctionne entièrement en local, sans compte.
+
+### Rappels (notifications)
+
+Chaque matin vers 8 h–9 h (heure de Paris), Vercel Cron appelle `/api/notifications/envoi` (voir `vercel.json`) : chaque appareil abonné reçoit son jour du programme, une alerte le vendredi s'il a coché soirée, alcool ou amis comme déclencheurs, puis un mot aux grands paliers après le jour 30. Sur iPhone, les notifications ne fonctionnent que si LUCIDE est installée sur l'écran d'accueil (iOS 16.4 ou plus récent).
 
 ### 4. Développement
 
