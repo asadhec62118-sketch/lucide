@@ -15,6 +15,8 @@ export type Profil = {
   jointsParJour: number | null;
   raisons: string[];
   raisonsTexte: string;
+  /** La phrase du Jour 1 : « J'arrête le cannabis, et voici pourquoi… ». */
+  pourquoi: string;
   declencheurs: string[];
   /** Début de la série en cours (ISO). */
   dateDepart: string;
@@ -79,6 +81,12 @@ export type Etat = {
   abonnement: Abonnement;
   sessionEnvie: SessionEnvie | null;
   programme: AvancementProgramme;
+  /** Début de l'utilisation de LUCIDE (ne change pas après une reprise). */
+  commenceLe: string | null;
+  /** Points d'étape anonymes (jours 7, 30, 90) déjà répondus ou écartés. */
+  pointsEtape: number[];
+  /** Rappels (notifications) activés sur cet appareil ; carte d'invitation masquée sur l'accueil. */
+  notifications: { actives: boolean; carteMasquee: boolean };
   /** Identifiant Supabase de l'utilisateur à qui appartiennent ces données. */
   utilisateurId: string | null;
   email: string | null;
@@ -96,6 +104,9 @@ export const ETAT_INITIAL: Etat = {
   abonnement: { statut: "free", formule: null, finPeriode: null },
   sessionEnvie: null,
   programme: { jourMax: 1, actionsFaites: [] },
+  notifications: { actives: false, carteMasquee: false },
+  commenceLe: null,
+  pointsEtape: [],
   utilisateurId: null,
   email: null,
   aSynchroniser: { profil: false, envies: [], reprises: [] },
@@ -113,7 +124,10 @@ function charger(): Etat {
     return {
       ...ETAT_INITIAL,
       ...lu,
-      profil: lu.profil ? { ...lu.profil, jointsParJour: lu.profil.jointsParJour ?? null } : null,
+      profil: lu.profil
+        ? { ...lu.profil, jointsParJour: lu.profil.jointsParJour ?? null, pourquoi: lu.profil.pourquoi ?? "" }
+        : null,
+      notifications: { ...ETAT_INITIAL.notifications, ...lu.notifications },
       // Anciennes versions : l'activité s'appelait « activiteSport ».
       envies: (lu.envies ?? []).map((e) => {
         const ancienne = e as Envie & { activiteSport?: string | null };
@@ -148,6 +162,17 @@ export function modifierEtat(fn: (e: Etat) => Etat): Etat {
   }
   abonnes.forEach((f) => f());
   return etat;
+}
+
+/** Efface toutes les données de LUCIDE sur cet appareil. */
+export function effacerDonneesLocales() {
+  etat = ETAT_INITIAL;
+  try {
+    window.localStorage.removeItem(CLE);
+  } catch {
+    // Stockage indisponible : l'état en mémoire est tout de même remis à zéro.
+  }
+  abonnes.forEach((f) => f());
 }
 
 function sAbonner(f: () => void) {

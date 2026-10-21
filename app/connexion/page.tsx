@@ -6,6 +6,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { CaseConsentement, metadonneesConsentement } from "@/components/Consentement";
 import { Bouton } from "@/components/ui";
 import { traduireErreur } from "@/lib/erreurs";
 import { supabaseNavigateur } from "@/lib/supabase/client";
@@ -25,6 +26,7 @@ export default function Connexion() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [envoi, setEnvoi] = useState(false);
+  const [consentement, setConsentement] = useState(false);
   const [erreur, setErreur] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -49,7 +51,7 @@ export default function Connexion() {
       const { data, error } = await sb.auth.signUp({
         email,
         password: motDePasse,
-        options: { emailRedirectTo: redirection() },
+        options: { emailRedirectTo: redirection(), data: metadonneesConsentement() },
       });
       setEnvoi(false);
       if (error) return setErreur(traduireErreur(error.message));
@@ -67,7 +69,14 @@ export default function Connexion() {
     if (!email) return setErreur("Indique ton adresse email.");
     setEnvoi(true);
     setErreur(null);
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirection() } });
+    // En mode connexion, le lien magique ne crée jamais de compte (pas de consentement recueilli).
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options:
+        mode === "inscription"
+          ? { emailRedirectTo: redirection(), data: metadonneesConsentement() }
+          : { emailRedirectTo: redirection(), shouldCreateUser: false },
+    });
     setEnvoi(false);
     if (error) return setErreur(traduireErreur(error.message));
     setMessage("C'est envoyé. Ouvre le lien reçu par email sur ce téléphone.");
@@ -108,10 +117,21 @@ export default function Connexion() {
             aria-label="Mot de passe"
           />
           {erreur && <p className="text-sm text-ambre">{erreur}</p>}
-          <Bouton type="submit" disabled={envoi || !email || !motDePasse} className="w-full">
+          {mode === "inscription" && <CaseConsentement coche={consentement} onChange={setConsentement} />}
+          <Bouton
+            type="submit"
+            disabled={envoi || !email || !motDePasse || (mode === "inscription" && !consentement)}
+            className="w-full"
+          >
             {mode === "connexion" ? "Se connecter" : "Créer mon compte"}
           </Bouton>
-          <Bouton type="button" variante="surface" disabled={envoi} onClick={lienMagique} className="w-full">
+          <Bouton
+            type="button"
+            variante="surface"
+            disabled={envoi || (mode === "inscription" && !consentement)}
+            onClick={lienMagique}
+            className="w-full"
+          >
             Recevoir un lien magique
           </Bouton>
           <Bouton

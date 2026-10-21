@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/inter";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Demarrage } from "@/components/Demarrage";
 
 // Métadonnées : installation sur l'écran d'accueil iOS et Android.
@@ -38,6 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-fond text-texte">
         <Demarrage />
         {children}
+        {/* Mesure d'audience anonyme et sans cookie (Vercel Web Analytics) */}
+        <Analytics />
       </body>
     </html>
   );

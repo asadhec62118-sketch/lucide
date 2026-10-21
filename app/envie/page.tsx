@@ -109,6 +109,8 @@ export default function ModeEnvie() {
         {etape === "raisons" && (
           <EtapeRaisons
             raisons={[
+              // La phrase de décision du Jour 1 passe en premier : ce sont ses propres mots.
+              ...(profil.pourquoi ? [profil.pourquoi] : []),
               ...profil.raisons,
               ...(profil.raisonsTexte ? [profil.raisonsTexte] : []),
               ...(profil.modeFoi ? profil.rappelsFoi : []),

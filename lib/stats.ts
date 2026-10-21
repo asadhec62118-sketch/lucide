@@ -149,3 +149,59 @@ export function jourDuProgramme(etat: Etat, maintenant = Date.now()): number {
 export function jourDebloque(etat: Etat, maintenant = Date.now()): number {
   return Math.max(etat.programme.jourMax, jourDuProgramme(etat, maintenant));
 }
+
+/** Jours du programme qui sont des bilans (Jours 7, 14, 21 et 29 du livre). */
+export const JOURS_BILAN = [7, 14, 21, 29];
+
+/** Bilan personnel calculé à partir des vraies données de la série en cours. */
+export function bilanPersonnel(etat: Etat, maintenant = Date.now()) {
+  if (!etat.profil) return null;
+  const depart = new Date(etat.profil.dateDepart).getTime();
+  const envies = etat.envies.filter((e) => new Date(e.creeLe).getTime() >= depart);
+  const semaine = envies.filter((e) => new Date(e.creeLe).getTime() >= maintenant - 7 * MS.jour);
+  const schemas = calculerSchemas(envies);
+  const regagne = ceQueTuAsRegagne(etat, maintenant);
+  return {
+    jours: joursDepuis(etat.profil.dateDepart, maintenant),
+    jointsEvites: regagne?.jointsEvites ?? null,
+    heures: regagne?.heures ?? null,
+    enviesTenues: envies.filter((e) => e.tenue).length,
+    enviesSemaine: semaine.length,
+    transformees: envies.filter((e) => e.activite).length,
+    moment: schemas.trancheHoraire,
+    declencheur: schemas.declencheurDominant,
+    actionsFaites: etat.programme.actionsFaites.length,
+  };
+}
+
+// --------------------------------------------------------------------------
+// Points d'étape anonymes (mesure des résultats)
+// --------------------------------------------------------------------------
+
+export const ETAPES_MESURE = [7, 30, 90];
+
+/** Date de début d'utilisation : enregistrée, ou à défaut la plus ancienne trace. */
+export function debutUtilisation(etat: Etat): string | null {
+  if (etat.commenceLe) return etat.commenceLe;
+  if (!etat.profil) return null;
+  const dates = [
+    etat.profil.dateDepart,
+    ...etat.reprises.map((r) => r.creeLe),
+    ...etat.envies.map((e) => e.creeLe),
+  ].map((d) => new Date(d).getTime());
+  return new Date(Math.min(...dates)).toISOString();
+}
+
+/**
+ * Point d'étape à proposer maintenant, s'il y en a un : compté depuis le début
+ * d'utilisation (et non depuis la dernière reprise, pour que tout le monde soit
+ * interrogé), pendant deux semaines après l'étape.
+ */
+export function pointEtapeAProposer(etat: Etat, maintenant = Date.now()): number | null {
+  const debut = debutUtilisation(etat);
+  if (!debut) return null;
+  const jours = joursDepuis(debut, maintenant);
+  return (
+    ETAPES_MESURE.find((e) => jours >= e && jours < e + 14 && !etat.pointsEtape.includes(e)) ?? null
+  );
+}

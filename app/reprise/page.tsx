@@ -47,6 +47,14 @@ export default function PageReprise() {
         </p>
       </section>
 
+      {etat.profil.pourquoi && (
+        <section className="mt-8 rounded-2xl border border-ambre/30 bg-surface p-5">
+          <p className="text-xs font-semibold tracking-wide text-ambre">TA DÉCISION DU JOUR 1</p>
+          <p className="mt-2 text-lg leading-relaxed">{etat.profil.pourquoi}</p>
+          <p className="mt-2 text-sm text-texte-2">Elle est toujours vraie. Repars d&apos;elle.</p>
+        </section>
+      )}
+
       <section className="mt-12">
         <h1 className="text-xl font-semibold">Qu&apos;est-ce qui s&apos;est passé ?</h1>
         <div className="mt-4 flex flex-wrap gap-2">

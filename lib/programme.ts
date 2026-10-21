@@ -30,6 +30,13 @@ export type JourProgramme = {
 
 export const NB_JOURS_PROGRAMME = 30;
 
+/**
+ * Jours dont la pensée lue par l'auteur est disponible.
+ * Pour en ajouter un : déposer le fichier dans public/audio/jour-N.mp3,
+ * puis ajouter N à cette liste.
+ */
+export const AUDIOS_DISPONIBLES: number[] = [];
+
 export const PROGRAMME: JourProgramme[] = [
   {
     jour: 1,
@@ -456,4 +463,109 @@ export const PROGRAMME: JourProgramme[] = [
 /** Pilier auquel appartient un jour du programme. */
 export function pilierDuJour(jour: number): Pilier {
   return PILIERS.find((p) => jour >= p.jours[0] && jour <= p.jours[1]) ?? PILIERS[0];
+}
+
+// --------------------------------------------------------------------------
+// Après le programme : un rendez-vous par semaine pendant les mois 2 et 3.
+// Brouillon composé à partir des idées et souvenirs du livre, à faire valider
+// par l'auteur.
+// --------------------------------------------------------------------------
+
+export type RendezVous = {
+  numero: number;
+  /** Nombre de jours écoulés depuis le départ à partir duquel il s'ouvre. */
+  jour: number;
+  titre: string;
+  pensee: string;
+  message: string;
+  action: string;
+};
+
+export const RENDEZ_VOUS: RendezVous[] = [
+  {
+    numero: 1,
+    jour: 30,
+    titre: "Rester vigilant quand tout va bien",
+    pensee:
+      "La force et la vigilance vont ensemble. Tu es plus solide qu'au premier jour : sers-t'en pour continuer, pas pour t'arrêter.",
+    message:
+      "Le programme est fini, ta nouvelle vie, elle, continue. C'est justement quand tout va mieux que la petite voix revient : « tu vois, tu maîtrises, une fois ne changera rien ». Tu la connais maintenant. Elle appartient à l'ancienne personne. Toi, tu n'es plus celle-là.",
+    action:
+      "Relis ta phrase de décision du Jour 1. Est-ce qu'elle est toujours vraie ? Si tu veux, complète-la avec ce que tu sais aujourd'hui.",
+  },
+  {
+    numero: 2,
+    jour: 37,
+    titre: "Les pensées qui reviennent",
+    pensee: "La pensée peut passer. Ce qui compte, c'est qu'elle n'a plus de pouvoir sur toi.",
+    message:
+      "Dix ans après, il m'arrive encore de rêver que je fume. Au réveil, je suis toujours libre. Une envie, une image, un rêve : ce ne sont pas des signes que tu recules. Ce sont des traces de l'ancienne vie. Tu les regardes passer, comme le canapé devant lequel tu ne t'assois plus.",
+    action:
+      "La prochaine fois qu'une pensée revient, nomme-la dans ta tête : « tiens, une trace de l'ancienne vie ». Puis va vers ta tondeuse.",
+  },
+  {
+    numero: 3,
+    jour: 44,
+    titre: "Ton nouveau quotidien",
+    pensee: "Remplacer pour acquérir, pas juste pour remplir. Une habitude tient quand elle t'apporte une richesse.",
+    message:
+      "Regarde ton quotidien d'aujourd'hui et celui d'il y a deux mois. Le sport, les tiens, la lecture, ta foi peut-être : qu'est-ce qui a pris la place ? Ce qui t'enrichit vraiment restera. Ce qui ne fait que boucher un trou, il est temps de le remplacer par mieux.",
+    action:
+      "Choisis une nouvelle chose à apprendre ou à pratiquer ce mois-ci. Quelque chose qui te grandit, que tu attends avec plaisir.",
+  },
+  {
+    numero: 4,
+    jour: 51,
+    titre: "Les épreuves de la vie",
+    pensee: "La vie t'apportera des épreuves. Tu ne prépares pas une faiblesse : tu prépares ta victoire.",
+    message:
+      "Un stress au travail, une tristesse, une fête où l'on fume : ces moments viendront. Les vivre ne veut pas dire que tu recules : c'est la vie. Ce qui fait la différence, c'est d'y arriver préparé : savoir à quoi tu penseras, sur qui ou sur quoi tu t'appuieras.",
+    action:
+      "Pense à la prochaine épreuve qui pourrait arriver ce mois-ci. Écris dans ta tête ton plan : ce que tu feras, qui tu appelleras, quelle activité tu lanceras.",
+  },
+  {
+    numero: 5,
+    jour: 58,
+    titre: "L'alcool, toujours",
+    pensee: "L'alcool n'attaque pas ta volonté de face. Il la contourne en endormant ta vigilance.",
+    message:
+      "Moi, j'avais arrêté l'alcool un an avant le cannabis, et je suis convaincu que ça m'a énormément aidé. Deux mois après, c'est souvent le moment où l'on se relâche, où l'on se dit qu'un verre ne changera rien. Si tu bois, sois honnête avec toi : est-ce que l'envie de fumer revient avec ?",
+    action:
+      "Si une soirée arrive, décide à l'avance ce que tu boiras. Un bon jus, un cocktail sans alcool : le plaisir passe aussi par le goût.",
+  },
+  {
+    numero: 6,
+    jour: 65,
+    titre: "Ce que tu as regagné",
+    pensee: "Quand tu réalises la valeur de ce que tu tiens dans tes mains, tu n'as plus aucune envie de le lâcher.",
+    message:
+      "Regarde tes chiffres sur l'accueil : l'argent, les joints non fumés, le temps. Ce temps-là, j'aurais pu le passer à construire. Toi, tu le récupères maintenant. Et il y a ce qui ne se compte pas : la tête plus claire, la sérénité de ne plus te cacher, la fierté.",
+    action:
+      "Offre-toi quelque chose avec une partie de l'argent économisé. Quelque chose qui te fait vibrer, et qui te rappelle pourquoi tu as choisi cette vie.",
+  },
+  {
+    numero: 7,
+    jour: 72,
+    titre: "Tends la main",
+    pensee: "Le bonheur qu'on donne revient toujours. En aidant l'autre, c'est toi aussi que tu renforces.",
+    message:
+      "Tu es peut-être déjà un exemple pour quelqu'un, sans le savoir. Pas besoin de crier sur les toits ton histoire, ni de faire la leçon. Si un jour tu croises quelqu'un de perdu sur ce chemin, une seule phrase suffit : « moi aussi, je sais ce que tu ressens ».",
+    action:
+      "Donne un peu de ton temps cette semaine : un coup de main à un proche, une association, quelqu'un qui en a besoin.",
+  },
+  {
+    numero: 8,
+    jour: 79,
+    titre: "La liberté qui grandit",
+    pensee: "Tu ne deviens pas libre en un jour. Tu deviens libre chaque jour, un peu plus. Et ça ne s'arrête jamais.",
+    message:
+      "Bientôt trois mois. On me demande souvent à quel moment je me suis senti vraiment libre. Il n'y a pas eu de moment précis : tous les jours, je sens ma liberté grandir, et dix ans après, elle grandit encore. L'envie du premier jour n'est pas celle du centième. Avec le temps, tout s'allège.",
+    action:
+      "Imagine la personne que tu seras dans un an, libre depuis un an. Garde cette image : c'est ton cap.",
+  },
+];
+
+/** Rendez-vous ouverts compte tenu des jours écoulés depuis le départ. */
+export function rendezVousOuverts(joursEcoules: number): RendezVous[] {
+  return RENDEZ_VOUS.filter((r) => joursEcoules >= r.jour);
 }
