@@ -133,6 +133,17 @@ npm run build && npm start   # le service worker n'est actif qu'en production
 2. Ajoute les variables d'environnement ci-dessus (Production et Preview).
 3. Déploie, puis mets à jour l'URL du webhook Stripe et les URLs de redirection Supabase avec le domaine final.
 
+## Publier sur le Google Play Store
+
+LUCIDE peut être publiée telle quelle sur le Play Store, sans réécrire l'application :
+
+1. Créer un compte développeur Google Play (frais uniques de 25 $, la seule dépense).
+2. Sur [pwabuilder.com](https://www.pwabuilder.com), entrer l'adresse du site puis *Package for stores* → *Android*. PWABuilder fournit le paquet à envoyer sur Google Play, le **nom du paquet** et l'**empreinte SHA-256**.
+3. Dans Vercel, renseigner `ANDROID_PACKAGE_NAME` et `ANDROID_SHA256_FINGERPRINTS`, puis redéployer : la route `/.well-known/assetlinks.json` prouve à Android que l'application et le site vont ensemble.
+4. Envoyer le paquet dans la Google Play Console (fiche, captures d'écran, questionnaire de contenu).
+
+L'App Store d'Apple demande un compte développeur payant (99 $ par an) ; PWABuilder sait aussi produire un paquet iOS, le moment venu.
+
 ## Installer l'application
 
 - **iOS (Safari)** : bouton Partager → « Sur l'écran d'accueil ».
