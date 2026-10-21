@@ -158,6 +158,17 @@ export function modifierEtat(fn: (e: Etat) => Etat): Etat {
   return etat;
 }
 
+/** Efface toutes les données de LUCIDE sur cet appareil. */
+export function effacerDonneesLocales() {
+  etat = ETAT_INITIAL;
+  try {
+    window.localStorage.removeItem(CLE);
+  } catch {
+    // Stockage indisponible : l'état en mémoire est tout de même remis à zéro.
+  }
+  abonnes.forEach((f) => f());
+}
+
 function sAbonner(f: () => void) {
   abonnes.add(f);
   // Synchronisation entre onglets ouverts en parallèle.

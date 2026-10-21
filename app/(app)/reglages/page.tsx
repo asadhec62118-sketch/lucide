@@ -4,9 +4,11 @@
 // bloc d'aide permanent et bouton discret « J'ai consommé ».
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { BlocAide } from "@/components/BlocAide";
+import { MesDonnees } from "@/components/MesDonnees";
 import { ChoixFormules, usePaiement } from "@/components/Offre";
 import { ReglageRappels } from "@/components/Rappels";
 import { SelecteurNombre } from "@/components/SelecteurNombre";
@@ -100,6 +102,21 @@ export default function Reglages() {
         <BlocPartage />
 
         <BlocAide />
+
+        <MesDonnees session={session} />
+
+        {/* Documents légaux */}
+        <nav aria-label="Informations légales" className="flex flex-wrap justify-center gap-x-4 gap-y-2 pt-2 text-xs text-texte-2">
+          <Link href="/confidentialite" className="hover:text-texte">
+            Confidentialité
+          </Link>
+          <Link href="/conditions" className="hover:text-texte">
+            Conditions
+          </Link>
+          <Link href="/mentions-legales" className="hover:text-texte">
+            Mentions légales
+          </Link>
+        </nav>
 
         {/* Reprise : volontairement discret. Au clic, le compteur repart de maintenant
             et les jours de la série sont ajoutés au cumul. */}

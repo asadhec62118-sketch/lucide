@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CaseConsentement, metadonneesConsentement } from "@/components/Consentement";
 import { SelecteurNombre } from "@/components/SelecteurNombre";
 import { Bouton, Chargement, Puce } from "@/components/ui";
 import { creerProfil } from "@/lib/actions";
@@ -263,6 +264,7 @@ function EtapeCompte() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [envoi, setEnvoi] = useState(false);
+  const [consentement, setConsentement] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [erreur, setErreur] = useState<string | null>(null);
   const sb = supabaseNavigateur();
@@ -276,7 +278,7 @@ function EtapeCompte() {
     const { data, error } = await sb.auth.signUp({
       email,
       password: motDePasse,
-      options: { emailRedirectTo: redirection },
+      options: { emailRedirectTo: redirection, data: metadonneesConsentement() },
     });
     setEnvoi(false);
     if (error) return setErreur(traduireErreur(error.message));
@@ -288,7 +290,10 @@ function EtapeCompte() {
     if (!sb || !email) return setErreur("Indique ton adresse email.");
     setEnvoi(true);
     setErreur(null);
-    const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirection } });
+    const { error } = await sb.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: redirection, data: metadonneesConsentement() },
+    });
     setEnvoi(false);
     if (error) return setErreur(traduireErreur(error.message));
     setMessage("C'est envoyé. Ouvre le lien reçu par email sur ce téléphone.");
@@ -326,10 +331,11 @@ function EtapeCompte() {
             aria-label="Mot de passe"
           />
           {erreur && <p className="text-sm text-ambre">{erreur}</p>}
-          <Bouton type="submit" disabled={envoi || !email || motDePasse.length < 8} className="w-full">
+          <CaseConsentement coche={consentement} onChange={setConsentement} />
+          <Bouton type="submit" disabled={envoi || !consentement || !email || motDePasse.length < 8} className="w-full">
             Créer mon compte
           </Bouton>
-          <Bouton type="button" variante="surface" disabled={envoi} onClick={lienMagique} className="w-full">
+          <Bouton type="button" variante="surface" disabled={envoi || !consentement} onClick={lienMagique} className="w-full">
             Recevoir un lien magique
           </Bouton>
         </form>

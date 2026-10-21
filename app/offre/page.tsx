@@ -93,7 +93,12 @@ export default function Offre() {
       </Bouton>
       {erreur && <p className="mt-3 text-center text-sm text-ambre">{erreur}</p>}
       <p className="mt-3 text-center text-xs text-texte-2">
-        Paiement sécurisé par Stripe. L&apos;essai gratuit est réservé à un premier abonnement.
+        Paiement sécurisé par Stripe. L&apos;essai gratuit est réservé à un premier abonnement. En t&apos;abonnant, tu
+        acceptes les{" "}
+        <Link href="/conditions" className="underline underline-offset-2">
+          conditions
+        </Link>
+        .
       </p>
 
       <Link href="/" className="mt-6 py-3 text-center text-sm text-texte-2 hover:text-texte">
