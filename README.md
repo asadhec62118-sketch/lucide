@@ -54,7 +54,7 @@ scripts/generer-icones.py                    régénère les icônes PNG
 ### 1. Supabase
 
 1. Crée un projet sur [supabase.com](https://supabase.com).
-2. Dans **SQL Editor**, exécute dans l'ordre `supabase/migrations/0001_schema_lucide.sql`, `0002_regagne_activites.sql`, `0003_pourquoi_notifications.sql` puis `0004_consentement.sql` (ou `supabase db push` avec la CLI).
+2. Dans **SQL Editor**, exécute dans l'ordre `supabase/migrations/0001_schema_lucide.sql`, `0002_regagne_activites.sql`, `0003_pourquoi_notifications.sql`, `0004_consentement.sql` puis `0005_mesures.sql` (ou `supabase db push` avec la CLI).
    - Tables `profiles`, `cravings`, `reprises`, toutes avec RLS : chaque utilisateur n'accède qu'à ses lignes.
    - Un trigger crée le profil à l'inscription.
    - Les colonnes d'abonnement (`subscription_status`, `stripe_*`…) ne sont **pas** modifiables par l'utilisateur (privilèges par colonne) : seul le webhook, avec la clé `service_role`, les écrit.
@@ -108,6 +108,11 @@ Les données de suivi sont des **données de santé** (RGPD, article 9) :
 - les réglages permettent de télécharger ses données et de supprimer son compte (route `DELETE /api/compte`, qui résilie aussi l'abonnement Stripe).
 
 Les pages `/confidentialite`, `/conditions` et `/mentions-legales` lisent les informations de l'éditeur dans `lib/legal.ts`, **à compléter avant le lancement**. Ces textes sont une base de travail : les faire relire par un professionnel du droit avant le lancement est recommandé.
+
+### Mesurer les résultats
+
+- **Audience** : Vercel Web Analytics (anonyme, sans cookie). À activer dans le projet Vercel, onglet *Analytics*.
+- **Résultats** : aux jours 7, 30 et 90 (comptés depuis le début d'utilisation), l'accueil propose un point d'étape anonyme : « Aujourd'hui, où en es-tu ? » puis « Est-ce que LUCIDE t'aide ? ». Les réponses arrivent dans la table `mesures_anonymes`, sans aucun identifiant. La requête pour lire les résultats est en commentaire dans `supabase/migrations/0005_mesures.sql`.
 
 ### Rappels (notifications)
 

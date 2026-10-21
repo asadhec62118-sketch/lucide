@@ -13,9 +13,17 @@ import { Verrou } from "@/components/Verrou";
 import { basculerActionProgramme, memoriserJourProgramme, modifierProfil } from "@/lib/actions";
 import { JOUR_LIMITE_PROGRAMME_GRATUIT } from "@/lib/constants";
 import { useEtatAvecProfil } from "@/lib/hooks";
-import { NB_JOURS_PROGRAMME, PILIERS, PROGRAMME, pilierDuJour, type JourProgramme } from "@/lib/programme";
+import {
+  AUDIOS_DISPONIBLES,
+  NB_JOURS_PROGRAMME,
+  PILIERS,
+  PROGRAMME,
+  RENDEZ_VOUS,
+  pilierDuJour,
+  type JourProgramme,
+} from "@/lib/programme";
 import { bilanPersonnel, estAbonne, JOURS_BILAN, jourDebloque, jourDuProgramme } from "@/lib/stats";
-import { argentEconomise, euros, pluriel } from "@/lib/temps";
+import { argentEconomise, euros, joursDepuis, pluriel } from "@/lib/temps";
 
 export default function Programme() {
   const etat = useEtatAvecProfil();
@@ -151,6 +159,8 @@ export default function Programme() {
         ))}
       </section>
 
+      <SectionRendezVous ecoules={joursDepuis(etat.profil.dateDepart)} abonne={abonne} />
+
       <p className="mt-8 text-xs leading-relaxed text-texte-2">
         Ces textes sont tirés du livre « Comment tu vas arrêter le cannabis », qui raconte chaque jour plus en
         détail. C&apos;est le témoignage d&apos;un ancien fumeur, pas un avis médical.
@@ -188,6 +198,13 @@ function FicheJour({
         <blockquote className="mt-4 border-l-2 border-ambre pl-4 text-lg leading-relaxed font-medium">
           {jour.pensee}
         </blockquote>
+        {/* La pensée du jour lue par l'auteur, quand l'enregistrement existe */}
+        {AUDIOS_DISPONIBLES.includes(jour.jour) && (
+          <div className="mt-4">
+            <p className="mb-2 text-xs text-texte-2">Écoute-la, lue par l&apos;auteur</p>
+            <audio controls preload="none" src={`/audio/jour-${jour.jour}.mp3`} className="w-full" />
+          </div>
+        )}
       </header>
 
       {bilan}
@@ -310,6 +327,61 @@ function BilanPersonnel({ bilan, argent }: { bilan: ReturnType<typeof bilanPerso
           Cette semaine : {pluriel(bilan.enviesSemaine, "envie")} notée{bilan.enviesSemaine > 1 ? "s" : ""}.
         </p>
       )}
+    </section>
+  );
+}
+
+/** Mois 2 et 3 : un rendez-vous par semaine après le programme (réservé aux abonnés). */
+function SectionRendezVous({ ecoules, abonne }: { ecoules: number; abonne: boolean }) {
+  const ouverts = RENDEZ_VOUS.filter((r) => ecoules >= r.jour);
+  const [deplie, setDeplie] = useState<number | null>(ouverts.at(-1)?.numero ?? null);
+
+  return (
+    <section id="rendez-vous" className="mt-10 scroll-mt-6" aria-label="Après le programme">
+      <h2 className="text-lg font-semibold">Après le programme</h2>
+      <p className="mt-1 text-sm text-texte-2">
+        Ce n&apos;est pas une fin, c&apos;est le début. Pendant les mois 2 et 3, un rendez-vous t&apos;attend chaque
+        semaine.
+      </p>
+      <Verrou verrouille={!abonne && ouverts.length > 0} message="Tes rendez-vous des mois 2 et 3 sont réservés aux abonnés.">
+        <ul className="mt-4 space-y-2">
+          {RENDEZ_VOUS.map((r) => {
+            const ouvert = ecoules >= r.jour;
+            const visible = ouvert && deplie === r.numero;
+            return (
+              <li key={r.numero} className="rounded-2xl bg-surface">
+                <button
+                  type="button"
+                  disabled={!ouvert}
+                  aria-expanded={visible}
+                  onClick={() => setDeplie(visible ? null : r.numero)}
+                  className="flex w-full items-center gap-3 p-3 text-left disabled:opacity-50"
+                >
+                  <span className="chiffres flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-xs font-bold text-texte-2">
+                    S{r.numero + 4}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{r.titre}</span>
+                    <span className="block text-xs text-texte-2">
+                      {ouvert ? `Semaine ${r.numero + 4}` : `S'ouvre dans ${pluriel(r.jour - ecoules, "jour")}`}
+                    </span>
+                  </span>
+                </button>
+                {visible && (
+                  <div className="space-y-3 px-4 pb-4 text-sm leading-relaxed">
+                    <p className="border-l-2 border-ambre pl-3 font-medium">{r.pensee}</p>
+                    <p className="text-texte-2">{r.message}</p>
+                    <p>
+                      <span className="font-semibold">Ton action&nbsp;: </span>
+                      {r.action}
+                    </p>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </Verrou>
     </section>
   );
 }

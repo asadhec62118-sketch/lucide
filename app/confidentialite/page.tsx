@@ -103,8 +103,13 @@ export default function Confidentialite() {
         <h2>Cookies et mesure d&apos;audience</h2>
         <p>
           LUCIDE n&apos;utilise aucun cookie publicitaire. Le stockage de ton téléphone sert uniquement au
-          fonctionnement de l&apos;application (ton compteur, ton journal, ta session). La mesure d&apos;audience, si
-          elle est activée, est anonyme et sans cookie.
+          fonctionnement de l&apos;application (ton compteur, ton journal, ta session). La mesure d&apos;audience est
+          anonyme et sans cookie.
+        </p>
+        <p className="mt-2">
+          Aux jours 7, 30 et 90, LUCIDE te propose un point d&apos;étape facultatif. Ta réponse est envoyée sans
+          aucun identifiant : impossible de savoir qu&apos;elle vient de toi. Elle sert uniquement à mesurer si
+          LUCIDE aide vraiment, et à l&apos;améliorer.
         </p>
       </section>
 

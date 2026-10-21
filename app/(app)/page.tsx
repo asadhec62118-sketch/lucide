@@ -6,11 +6,13 @@
 
 import Link from "next/link";
 import { BlocAide } from "@/components/BlocAide";
+import { PointEtape } from "@/components/PointEtape";
 import { CarteRappels } from "@/components/Rappels";
 import { Carte, Chargement } from "@/components/ui";
 import { useEtatAvecProfil, useMaintenant } from "@/lib/hooks";
 import { TEXTE_ALCOOL } from "@/lib/constants";
-import { PROGRAMME } from "@/lib/programme";
+import { partagerImageEtape } from "@/lib/image-etape";
+import { PROGRAMME, rendezVousOuverts } from "@/lib/programme";
 import {
   alerteSecurite,
   ceQueTuAsRegagne,
@@ -37,6 +39,9 @@ export default function Accueil() {
   const restantes = enviesRestantes(etat);
   const alerte = alerteSecurite(etat.envies, maintenant);
   const jourProgramme = PROGRAMME[jourDuProgramme(etat, maintenant) - 1];
+  // Mois 2 et 3 : le dernier rendez-vous ouvert remplace la carte du jour (jusqu'à J90).
+  const rendezVous = duree.jours < 90 ? (rendezVousOuverts(duree.jours).at(-1) ?? null) : null;
+  const programmeEnCours = duree.jours < 30;
   const regagne = ceQueTuAsRegagne(etat, maintenant);
   const transformees = enviesTransformees(etat.envies);
   const actionDuJourFaite = etat.programme.actionsFaites.includes(jourProgramme.jour);
@@ -69,6 +74,14 @@ export default function Accueil() {
             </div>
           ))}
         </div>
+        {/* Partager son étape (image sans mention du cannabis) */}
+        <button
+          type="button"
+          onClick={() => void partagerImageEtape(duree.jours, economies >= 1 ? euros(economies, true) : null)}
+          className="mt-4 rounded-full px-4 py-2 text-sm text-texte-2 transition hover:bg-surface hover:text-texte"
+        >
+          Partager mon étape
+        </button>
       </section>
 
       {alerte && (
@@ -78,19 +91,33 @@ export default function Accueil() {
       )}
 
       <div className="mt-8 grid gap-4">
-        {/* Programme de 30 jours : le jour en cours */}
-        <Link
-          href={`/programme?jour=${jourProgramme.jour}`}
-          className="block rounded-2xl border border-ambre/30 bg-surface p-5 transition hover:border-ambre/60"
-        >
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold tracking-wide text-ambre">TON JOUR {jourProgramme.jour} / 30</p>
-            {actionDuJourFaite && <span className="text-xs font-medium text-vert">Action faite</span>}
-          </div>
-          <p className="mt-1 text-lg font-semibold">{jourProgramme.titre}</p>
-          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-texte-2">{jourProgramme.pensee}</p>
-          <p className="mt-3 text-sm text-ambre">Lire ton jour →</p>
-        </Link>
+        {/* Programme de 30 jours, puis rendez-vous de la semaine (mois 2 et 3) */}
+        {rendezVous ? (
+          <Link
+            href="/programme#rendez-vous"
+            className="block rounded-2xl border border-ambre/30 bg-surface p-5 transition hover:border-ambre/60"
+          >
+            <p className="text-xs font-semibold tracking-wide text-ambre">TON RENDEZ-VOUS DE LA SEMAINE</p>
+            <p className="mt-1 text-lg font-semibold">{rendezVous.titre}</p>
+            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-texte-2">{rendezVous.pensee}</p>
+            <p className="mt-3 text-sm text-ambre">Lire →</p>
+          </Link>
+        ) : programmeEnCours ? (
+          <Link
+            href={`/programme?jour=${jourProgramme.jour}`}
+            className="block rounded-2xl border border-ambre/30 bg-surface p-5 transition hover:border-ambre/60"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold tracking-wide text-ambre">TON JOUR {jourProgramme.jour} / 30</p>
+              {actionDuJourFaite && <span className="text-xs font-medium text-vert">Action faite</span>}
+            </div>
+            <p className="mt-1 text-lg font-semibold">{jourProgramme.titre}</p>
+            <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-texte-2">{jourProgramme.pensee}</p>
+            <p className="mt-3 text-sm text-ambre">Lire ton jour →</p>
+          </Link>
+        ) : null}
+
+        <PointEtape />
 
         <CarteRappels />
 

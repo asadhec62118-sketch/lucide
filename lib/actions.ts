@@ -27,6 +27,7 @@ export function creerProfil(
       modeSport: false,
       majLe: maintenantISO(),
     },
+    commenceLe: e.commenceLe ?? maintenantISO(),
     aSynchroniser: { ...e.aSynchroniser, profil: true },
   }));
   void synchroniser();

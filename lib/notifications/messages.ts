@@ -2,7 +2,7 @@
 // Fonction pure : elle ne dépend que de la date de départ, du fuseau horaire
 // et de la préférence « vendredi soir ». Un seul message par jour au maximum.
 
-import { NB_JOURS_PROGRAMME, PROGRAMME } from "../programme";
+import { NB_JOURS_PROGRAMME, PROGRAMME, RENDEZ_VOUS } from "../programme";
 
 export type MessageRappel = { titre: string; corps: string; url: string };
 
@@ -53,8 +53,18 @@ export function messageDuJour(
     };
   }
 
-  // Après le programme : un mot aux grands paliers, puis chaque année.
+  // Mois 2 et 3 : le rendez-vous de la semaine.
   const jours = jour - 1;
+  const rdv = RENDEZ_VOUS.find((r) => r.jour === jours);
+  if (rdv) {
+    return {
+      titre: `Ton rendez-vous de la semaine · ${rdv.titre}`,
+      corps: premierePhrase(rdv.pensee),
+      url: "/programme#rendez-vous",
+    };
+  }
+
+  // Ensuite : un mot aux grands paliers, puis chaque année.
   if (PALIERS_APRES_PROGRAMME.includes(jours) || (jours > 365 && jours % 365 === 0)) {
     return {
       titre: `Libre depuis ${jours} jours`,

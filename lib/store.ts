@@ -81,6 +81,10 @@ export type Etat = {
   abonnement: Abonnement;
   sessionEnvie: SessionEnvie | null;
   programme: AvancementProgramme;
+  /** Début de l'utilisation de LUCIDE (ne change pas après une reprise). */
+  commenceLe: string | null;
+  /** Points d'étape anonymes (jours 7, 30, 90) déjà répondus ou écartés. */
+  pointsEtape: number[];
   /** Rappels (notifications) activés sur cet appareil ; carte d'invitation masquée sur l'accueil. */
   notifications: { actives: boolean; carteMasquee: boolean };
   /** Identifiant Supabase de l'utilisateur à qui appartiennent ces données. */
@@ -101,6 +105,8 @@ export const ETAT_INITIAL: Etat = {
   sessionEnvie: null,
   programme: { jourMax: 1, actionsFaites: [] },
   notifications: { actives: false, carteMasquee: false },
+  commenceLe: null,
+  pointsEtape: [],
   utilisateurId: null,
   email: null,
   aSynchroniser: { profil: false, envies: [], reprises: [] },
