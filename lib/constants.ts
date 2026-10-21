@@ -22,6 +22,7 @@ export const DECLENCHEURS = [
   "Après le travail",
   "Avant de dormir",
   "Seul chez moi",
+  "Alcool",
 ] as const;
 
 /** Lieux proposés dans le journal rapide du Mode Envie. */
@@ -46,12 +47,77 @@ export const EMOTIONS = [
   "Bien, juste l'habitude",
 ] as const;
 
-/** Alternatives physiques proposées quand le Mode Sport est actif. */
-export const ACTIVITES_SPORT = [
-  { id: "pompes", titre: "20 pompes", detail: "À ton rythme, en plusieurs séries si besoin." },
-  { id: "corde", titre: "5 minutes de corde à sauter", detail: "Ou des sauts sur place sans corde." },
-  { id: "marche", titre: "Marche de 10 minutes", detail: "Sors, change d'air, marche d'un bon pas." },
-] as const;
+export type CategorieActivite = "sport" | "proches" | "apprendre" | "foi" | "quotidien";
+
+export type Activite = { id: string; titre: string; detail: string };
+
+/**
+ * « Remplacer pour acquérir » : pendant une envie, LUCIDE propose une activité
+ * qui a de la valeur. La catégorie « sport » est mise en avant par le Mode Sport,
+ * la catégorie « foi » n'apparaît que si le Mode Foi est actif.
+ */
+export const CATEGORIES_ACTIVITES: { id: CategorieActivite; titre: string; activites: Activite[] }[] = [
+  {
+    id: "sport",
+    titre: "Bouger",
+    activites: [
+      { id: "pompes", titre: "20 pompes", detail: "À ton rythme, en plusieurs séries si besoin." },
+      { id: "corde", titre: "5 minutes de corde à sauter", detail: "Ou des sauts sur place sans corde." },
+      { id: "marche", titre: "Marche de 10 minutes", detail: "Sors, change d'air, marche d'un bon pas." },
+    ],
+  },
+  {
+    id: "proches",
+    titre: "Les tiens",
+    activites: [
+      { id: "appel", titre: "Appeler un proche", detail: "Ta mère, ton père, un frère, une sœur, un ami qui te fait du bien." },
+      { id: "visite", titre: "Passer voir quelqu'un que tu aimes", detail: "Un moment simple : parler, marcher, partager un repas." },
+    ],
+  },
+  {
+    id: "apprendre",
+    titre: "Apprendre",
+    activites: [
+      { id: "lecture", titre: "Lire 15 minutes", detail: "Un livre qui t'apporte quelque chose." },
+      { id: "reportage", titre: "Un reportage qui t'apprend quelque chose", detail: "Nourris ta tête au lieu de l'endormir." },
+    ],
+  },
+  {
+    id: "foi",
+    titre: "Ta foi",
+    activites: [
+      { id: "recueillement", titre: "Un moment de prière ou de recueillement", detail: "Reviens à ce qui est plus grand que toi." },
+      { id: "texte", titre: "Lire un texte qui te porte", detail: "Quelques lignes qui te rappellent pourquoi tu fais ça." },
+    ],
+  },
+  {
+    id: "quotidien",
+    titre: "Le quotidien",
+    activites: [
+      { id: "vaisselle", titre: "Faire la vaisselle", detail: "Une fois faite, tu seras content qu'elle le soit." },
+      { id: "aspirateur", titre: "Passer l'aspirateur", detail: "Bouge, et l'envie passe pendant ce temps." },
+      { id: "ranger", titre: "Ranger une pièce", detail: "Une pièce rangée, une tête plus claire." },
+      { id: "jardin", titre: "Tondre ou jardiner", detail: "Va vers ta tondeuse, pas vers le canapé." },
+    ],
+  },
+];
+
+/** Estimation du temps consacré à un joint (chercher, rouler, fumer), en minutes. */
+export const MINUTES_PAR_JOINT = 15;
+
+/** Vigilance alcool, d'après le Jour 3 du livre. */
+export const TEXTE_ALCOOL =
+  "Quand on boit, la garde tombe. L'alcool endort les freins qui te font dire « non » au moment de la tentation, et l'envie revient par la petite porte : « allez, juste un petit joint ». Tu n'as pas forcément à arrêter l'alcool aujourd'hui, mais pendant cette période, méfie-toi de lui : c'est le meilleur ami de l'envie.";
+
+/** Idées de rappels pour le Mode Foi : l'utilisateur choisit lesquels ajouter. */
+export const SUGGESTIONS_FOI = [
+  "Avec la difficulté vient la facilité.",
+  "Dieu voit chacun de mes efforts.",
+  "Ma force vient de quelque chose de plus grand que moi.",
+  "Je ne veux pas arriver au bout de mon chemin avec des regrets.",
+  "Chaque minute que je tiens est une minute de chemin parcouru.",
+  "Je fais ça aussi pour ceux que j'aime.",
+];
 
 /** Nombre d'utilisations du Mode Envie par semaine en version gratuite. */
 export const LIMITE_ENVIES_GRATUIT = 3;
@@ -61,6 +127,9 @@ export const DUREE_ENVIE_SECONDES = 10 * 60;
 
 /** Jour (inclus) au-delà duquel le Parcours est réservé aux abonnés. */
 export const JOUR_LIMITE_PARCOURS_GRATUIT = 7;
+
+/** Dernier jour du programme de 30 jours accessible en version gratuite. */
+export const JOUR_LIMITE_PROGRAMME_GRATUIT = 7;
 
 /** Nombre d'entrées au-delà duquel la section « Tes schémas » apparaît. */
 export const SEUIL_SCHEMAS = 10;

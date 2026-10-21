@@ -4,6 +4,7 @@
 // Les jalons dépassés sont marqués comme atteints. En version gratuite,
 // le contenu au-delà de J7 est flouté avec une incitation à l'abonnement.
 
+import Link from "next/link";
 import { IconeCoche } from "@/components/Icones";
 import { Chargement, TitrePage } from "@/components/ui";
 import { Verrou } from "@/components/Verrou";
@@ -27,6 +28,20 @@ export default function Parcours() {
   return (
     <>
       <TitrePage sousTitre={`Tu en es au jour ${jourCourant}.`}>Ton parcours</TitrePage>
+
+      {/* Accès au programme de 30 jours tiré du livre */}
+      <Link
+        href="/programme"
+        className="mb-8 flex items-center justify-between gap-4 rounded-2xl border border-ambre/30 bg-surface p-5 transition hover:border-ambre/60"
+      >
+        <span>
+          <span className="block text-base font-semibold">Ton programme 30 jours</span>
+          <span className="mt-1 block text-sm text-texte-2">Une pensée, un témoignage et une action, chaque jour.</span>
+        </span>
+        <span className="text-ambre" aria-hidden>
+          →
+        </span>
+      </Link>
 
       <ol className="relative">
         {libres.map((j, i) => (

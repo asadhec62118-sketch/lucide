@@ -13,6 +13,7 @@ type LigneProfil = {
   email: string | null;
   years_using: number | null;
   weekly_spend: number | string;
+  joints_per_day: number | null;
   reasons: string[];
   reasons_text: string;
   triggers: string[];
@@ -37,6 +38,7 @@ type LigneEnvie = {
   emotion: string | null;
   resisted: boolean;
   sport_activity: string | null;
+  activity_kind: string | null;
   updated_at: string;
 };
 
@@ -44,6 +46,7 @@ function profilVersLigne(p: Profil) {
   return {
     years_using: p.anneesConso,
     weekly_spend: p.depenseHebdo,
+    joints_per_day: p.jointsParJour,
     reasons: p.raisons,
     reasons_text: p.raisonsTexte,
     triggers: p.declencheurs,
@@ -61,6 +64,7 @@ function ligneVersProfil(l: LigneProfil): Profil | null {
   return {
     anneesConso: l.years_using ?? 0,
     depenseHebdo: Number(l.weekly_spend) || 0,
+    jointsParJour: l.joints_per_day ?? null,
     raisons: l.reasons ?? [],
     raisonsTexte: l.reasons_text ?? "",
     declencheurs: l.triggers ?? [],
@@ -84,7 +88,8 @@ function envieVersLigne(e: Envie, utilisateurId: string) {
     location: e.lieu,
     emotion: e.emotion,
     resisted: e.tenue,
-    sport_activity: e.activiteSport,
+    sport_activity: e.activite,
+    activity_kind: e.typeActivite,
   };
 }
 
@@ -98,7 +103,8 @@ function ligneVersEnvie(l: LigneEnvie): Envie {
     lieu: l.location,
     emotion: l.emotion,
     tenue: l.resisted,
-    activiteSport: l.sport_activity,
+    activite: l.sport_activity,
+    typeActivite: l.activity_kind ?? (l.sport_activity ? "sport" : null),
     majLe: l.updated_at,
   };
 }

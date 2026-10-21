@@ -101,7 +101,7 @@ function EntreeJournal({ envie }: { envie: Envie }) {
         <p className="truncate font-medium">{details || "Envie non détaillée"}</p>
         <p className="chiffres mt-0.5 text-xs text-texte-2">
           {heure(envie.creeLe)}
-          {envie.activiteSport && <span className="text-vert"> · {envie.activiteSport}</span>}
+          {envie.activite && <span className="text-vert"> · {envie.activite}</span>}
         </p>
       </div>
       {envie.tenue && (

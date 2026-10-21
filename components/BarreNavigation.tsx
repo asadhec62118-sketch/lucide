@@ -22,7 +22,11 @@ export function BarreNavigation() {
     >
       <ul className="mx-auto grid h-[var(--hauteur-nav)] max-w-lg grid-cols-4">
         {ONGLETS.map(({ href, libelle, Icone }) => {
-          const actif = href === "/" ? chemin === "/" : chemin.startsWith(href);
+          // Le programme de 30 jours fait partie de l'onglet Parcours.
+          const actif =
+            href === "/"
+              ? chemin === "/"
+              : chemin.startsWith(href) || (href === "/parcours" && chemin.startsWith("/programme"));
           return (
             <li key={href}>
               <Link

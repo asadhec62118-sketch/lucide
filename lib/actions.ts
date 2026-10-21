@@ -12,7 +12,9 @@ function maintenantISO() {
 }
 
 /** Fin de l'onboarding : création du profil local. */
-export function creerProfil(p: Omit<Profil, "majLe" | "totalJoursPropres" | "modeFoi" | "rappelsFoi" | "modeSport">) {
+export function creerProfil(
+  p: Omit<Profil, "majLe" | "totalJoursPropres" | "modeFoi" | "rappelsFoi" | "modeSport">,
+) {
   modifierEtat((e) => ({
     ...e,
     profil: {
@@ -65,7 +67,8 @@ export function demarrerEnvie(): { envieId: string; debut: string } {
     lieu: null,
     emotion: null,
     tenue: false,
-    activiteSport: null,
+    activite: null,
+    typeActivite: null,
     majLe: debut,
   };
   modifierEtat((e) => ({
@@ -144,4 +147,25 @@ export function completerReprise(id: string, texte: string) {
     aSynchroniser: { ...e.aSynchroniser, reprises: [...new Set([...e.aSynchroniser.reprises, id])] },
   }));
   void synchroniser();
+}
+
+/** Mémorise le jour le plus loin atteint dans le programme (local uniquement). */
+export function memoriserJourProgramme(jour: number) {
+  modifierEtat((e) =>
+    jour > e.programme.jourMax ? { ...e, programme: { ...e.programme, jourMax: jour } } : e,
+  );
+}
+
+/** Coche ou décoche l'action d'un jour du programme. */
+export function basculerActionProgramme(jour: number) {
+  modifierEtat((e) => {
+    const faites = e.programme.actionsFaites;
+    return {
+      ...e,
+      programme: {
+        ...e.programme,
+        actionsFaites: faites.includes(jour) ? faites.filter((j) => j !== jour) : [...faites, jour],
+      },
+    };
+  });
 }

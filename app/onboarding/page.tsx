@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SelecteurNombre } from "@/components/SelecteurNombre";
 import { Bouton, Chargement, Puce } from "@/components/ui";
 import { creerProfil } from "@/lib/actions";
 import { DECLENCHEURS, MENTION_LEGALE, RAISONS } from "@/lib/constants";
@@ -15,6 +16,9 @@ import { traduireErreur } from "@/lib/erreurs";
 import { dateLocaleISO } from "@/lib/temps";
 
 const NB_ETAPES = 6;
+
+/** Durée de consommation maximale proposée (affichée « 70 ans et plus »). */
+const ANNEES_MAX = 70;
 
 /** Ajoute ou retire une valeur d'une liste (puces multiples). */
 function basculer(liste: string[], valeur: string) {
@@ -29,6 +33,7 @@ export default function Onboarding() {
   // Réponses
   const [annees, setAnnees] = useState(3);
   const [depense, setDepense] = useState("");
+  const [joints, setJoints] = useState<number | null>(3);
   const [raisons, setRaisons] = useState<string[]>([]);
   const [raisonsTexte, setRaisonsTexte] = useState("");
   const [declencheurs, setDeclencheurs] = useState<string[]>([]);
@@ -63,6 +68,7 @@ export default function Onboarding() {
       creerProfil({
         anneesConso: annees,
         depenseHebdo: Math.round(depenseNombre * 100) / 100,
+        jointsParJour: joints,
         raisons,
         raisonsTexte: raisonsTexte.trim(),
         declencheurs,
@@ -112,12 +118,12 @@ export default function Onboarding() {
               </button>
               <div className="min-w-32 text-center">
                 <p className="chiffres text-7xl font-bold">{annees === 0 ? "<1" : annees}</p>
-                <p className="mt-1 text-texte-2">{annees <= 1 ? "an" : "ans"}</p>
+                <p className="mt-1 text-texte-2">{annees === 0 ? "an" : annees >= ANNEES_MAX ? "ans et plus" : annees === 1 ? "an" : "ans"}</p>
               </div>
               <button
                 type="button"
                 aria-label="Une année de plus"
-                onClick={() => setAnnees((a) => Math.min(50, a + 1))}
+                onClick={() => setAnnees((a) => Math.min(ANNEES_MAX, a + 1))}
                 className="h-14 w-14 rounded-2xl bg-surface text-2xl font-bold hover:bg-surface-2"
               >
                 +
@@ -126,12 +132,16 @@ export default function Onboarding() {
             <input
               type="range"
               min={0}
-              max={30}
-              value={Math.min(annees, 30)}
+              max={ANNEES_MAX}
+              value={annees}
               onChange={(e) => setAnnees(Number(e.target.value))}
               aria-label="Nombre d'années"
               className="mt-10 w-full accent-[#F5A524]"
             />
+            <div className="mt-2 flex justify-between text-xs text-texte-2">
+              <span>Moins d&apos;un an</span>
+              <span>{ANNEES_MAX} ans et plus</span>
+            </div>
           </Etape>
         )}
 
@@ -151,6 +161,25 @@ export default function Onboarding() {
               <span className="text-3xl font-bold text-texte-2">€</span>
             </label>
             <p className="mt-3 text-sm text-texte-2">par semaine</p>
+
+            {/* Facultatif : sert à estimer les joints non fumés et le temps regagné */}
+            <div className="mt-10 rounded-2xl bg-surface p-5">
+              <p className="font-semibold">Et combien de joints par jour, environ ?</p>
+              {joints !== null ? (
+                <>
+                  <div className="mt-4">
+                    <SelecteurNombre libelle="Joints par jour" valeur={joints} onChange={setJoints} unite="par jour" />
+                  </div>
+                  <button type="button" onClick={() => setJoints(null)} className="mt-4 text-sm text-texte-2 hover:text-texte">
+                    Je préfère ne pas répondre
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => setJoints(3)} className="mt-3 text-sm text-ambre">
+                  Répondre finalement
+                </button>
+              )}
+            </div>
           </Etape>
         )}
 

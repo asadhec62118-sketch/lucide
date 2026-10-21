@@ -11,6 +11,8 @@ import { useSyncExternalStore } from "react";
 export type Profil = {
   anneesConso: number;
   depenseHebdo: number;
+  /** Nombre de joints par jour avant l'arrêt (facultatif, pour « Ce que tu as regagné »). */
+  jointsParJour: number | null;
   raisons: string[];
   raisonsTexte: string;
   declencheurs: string[];
@@ -35,7 +37,9 @@ export type Envie = {
   emotion: string | null;
   /** true quand la séquence du Mode Envie est allée jusqu'au bout. */
   tenue: boolean;
-  activiteSport: string | null;
+  /** Activité choisie pour remplacer l'envie (« Remplacer pour acquérir »). */
+  activite: string | null;
+  typeActivite: string | null;
   majLe: string;
 };
 
@@ -59,6 +63,14 @@ export type SessionEnvie = {
   etape: string;
 };
 
+/** Avancement dans le programme de 30 jours (gardé sur l'appareil). */
+export type AvancementProgramme = {
+  /** Jour le plus loin atteint : les jours déjà ouverts restent lisibles après une reprise. */
+  jourMax: number;
+  /** Jours dont l'action a été cochée. */
+  actionsFaites: number[];
+};
+
 export type Etat = {
   version: 1;
   profil: Profil | null;
@@ -66,6 +78,7 @@ export type Etat = {
   reprises: Reprise[];
   abonnement: Abonnement;
   sessionEnvie: SessionEnvie | null;
+  programme: AvancementProgramme;
   /** Identifiant Supabase de l'utilisateur à qui appartiennent ces données. */
   utilisateurId: string | null;
   email: string | null;
@@ -82,6 +95,7 @@ export const ETAT_INITIAL: Etat = {
   reprises: [],
   abonnement: { statut: "free", formule: null, finPeriode: null },
   sessionEnvie: null,
+  programme: { jourMax: 1, actionsFaites: [] },
   utilisateurId: null,
   email: null,
   aSynchroniser: { profil: false, envies: [], reprises: [] },
@@ -99,7 +113,18 @@ function charger(): Etat {
     return {
       ...ETAT_INITIAL,
       ...lu,
+      profil: lu.profil ? { ...lu.profil, jointsParJour: lu.profil.jointsParJour ?? null } : null,
+      // Anciennes versions : l'activité s'appelait « activiteSport ».
+      envies: (lu.envies ?? []).map((e) => {
+        const ancienne = e as Envie & { activiteSport?: string | null };
+        return {
+          ...e,
+          activite: e.activite ?? ancienne.activiteSport ?? null,
+          typeActivite: e.typeActivite ?? (ancienne.activiteSport ? "sport" : null),
+        };
+      }),
       abonnement: { ...ETAT_INITIAL.abonnement, ...lu.abonnement },
+      programme: { ...ETAT_INITIAL.programme, ...lu.programme },
       aSynchroniser: { ...ETAT_INITIAL.aSynchroniser, ...lu.aSynchroniser },
     };
   } catch {
