@@ -133,6 +133,13 @@ npm run build && npm start   # le service worker n'est actif qu'en production
 2. Ajoute les variables d'environnement ci-dessus (Production et Preview).
 3. Déploie, puis mets à jour l'URL du webhook Stripe et les URLs de redirection Supabase avec le domaine final.
 
+## La voix de l'auteur
+
+1. Sur son téléphone, l'auteur ouvre `/studio` (page non référencée), lit la pensée de chaque jour, réécoute et recommence si besoin. Les enregistrements restent dans le téléphone jusqu'à l'envoi.
+2. Le bouton « Envoyer mes enregistrements » partage les fichiers `jour-N.m4a` (ou `.webm`).
+3. Conversion en MP3 avec volume harmonisé : `bash scripts/convertir-audio.sh dossier-des-fichiers` (nécessite `ffmpeg`), qui écrit dans `public/audio/`.
+4. Ajouter les numéros des jours dans `AUDIOS_DISPONIBLES` (`lib/programme.ts`) : le lecteur apparaît sous la pensée du jour.
+
 ## Publier sur le Google Play Store
 
 LUCIDE peut être publiée telle quelle sur le Play Store, sans réécrire l'application :
