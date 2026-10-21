@@ -8,7 +8,16 @@ import Link from "next/link";
 import { BlocAide } from "@/components/BlocAide";
 import { Carte, Chargement } from "@/components/ui";
 import { useEtatAvecProfil, useMaintenant } from "@/lib/hooks";
-import { alerteSecurite, enviesEnSeances, enviesRestantes, estAbonne, prochainPalier, totalJoursPropres } from "@/lib/stats";
+import { PROGRAMME } from "@/lib/programme";
+import {
+  alerteSecurite,
+  enviesEnSeances,
+  enviesRestantes,
+  estAbonne,
+  jourDuProgramme,
+  prochainPalier,
+  totalJoursPropres,
+} from "@/lib/stats";
 import { argentEconomise, deuxChiffres, dureeDepuis, dureeRestante, euros, pluriel } from "@/lib/temps";
 
 export default function Accueil() {
@@ -23,6 +32,8 @@ export default function Accueil() {
   const cumul = totalJoursPropres(etat, maintenant);
   const restantes = enviesRestantes(etat);
   const alerte = alerteSecurite(etat.envies, maintenant);
+  const jourProgramme = PROGRAMME[jourDuProgramme(etat, maintenant) - 1];
+  const actionDuJourFaite = etat.programme.actionsFaites.includes(jourProgramme.jour);
 
   return (
     <div className="pb-24">
@@ -61,6 +72,20 @@ export default function Accueil() {
       )}
 
       <div className="mt-8 grid gap-4">
+        {/* Programme de 30 jours : le jour en cours */}
+        <Link
+          href={`/programme?jour=${jourProgramme.jour}`}
+          className="block rounded-2xl border border-ambre/30 bg-surface p-5 transition hover:border-ambre/60"
+        >
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold tracking-wide text-ambre">TON JOUR {jourProgramme.jour} / 30</p>
+            {actionDuJourFaite && <span className="text-xs font-medium text-vert">Action faite</span>}
+          </div>
+          <p className="mt-1 text-lg font-semibold">{jourProgramme.titre}</p>
+          <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-texte-2">{jourProgramme.pensee}</p>
+          <p className="mt-3 text-sm text-ambre">Lire ton jour →</p>
+        </Link>
+
         {/* Argent économisé */}
         <Carte>
           <p className="text-sm text-texte-2">Argent économisé</p>

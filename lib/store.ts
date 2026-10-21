@@ -59,6 +59,14 @@ export type SessionEnvie = {
   etape: string;
 };
 
+/** Avancement dans le programme de 30 jours (gardé sur l'appareil). */
+export type AvancementProgramme = {
+  /** Jour le plus loin atteint : les jours déjà ouverts restent lisibles après une reprise. */
+  jourMax: number;
+  /** Jours dont l'action a été cochée. */
+  actionsFaites: number[];
+};
+
 export type Etat = {
   version: 1;
   profil: Profil | null;
@@ -66,6 +74,7 @@ export type Etat = {
   reprises: Reprise[];
   abonnement: Abonnement;
   sessionEnvie: SessionEnvie | null;
+  programme: AvancementProgramme;
   /** Identifiant Supabase de l'utilisateur à qui appartiennent ces données. */
   utilisateurId: string | null;
   email: string | null;
@@ -82,6 +91,7 @@ export const ETAT_INITIAL: Etat = {
   reprises: [],
   abonnement: { statut: "free", formule: null, finPeriode: null },
   sessionEnvie: null,
+  programme: { jourMax: 1, actionsFaites: [] },
   utilisateurId: null,
   email: null,
   aSynchroniser: { profil: false, envies: [], reprises: [] },
@@ -100,6 +110,7 @@ function charger(): Etat {
       ...ETAT_INITIAL,
       ...lu,
       abonnement: { ...ETAT_INITIAL.abonnement, ...lu.abonnement },
+      programme: { ...ETAT_INITIAL.programme, ...lu.programme },
       aSynchroniser: { ...ETAT_INITIAL.aSynchroniser, ...lu.aSynchroniser },
     };
   } catch {

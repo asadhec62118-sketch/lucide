@@ -145,3 +145,24 @@ export function completerReprise(id: string, texte: string) {
   }));
   void synchroniser();
 }
+
+/** Mémorise le jour le plus loin atteint dans le programme (local uniquement). */
+export function memoriserJourProgramme(jour: number) {
+  modifierEtat((e) =>
+    jour > e.programme.jourMax ? { ...e, programme: { ...e.programme, jourMax: jour } } : e,
+  );
+}
+
+/** Coche ou décoche l'action d'un jour du programme. */
+export function basculerActionProgramme(jour: number) {
+  modifierEtat((e) => {
+    const faites = e.programme.actionsFaites;
+    return {
+      ...e,
+      programme: {
+        ...e.programme,
+        actionsFaites: faites.includes(jour) ? faites.filter((j) => j !== jour) : [...faites, jour],
+      },
+    };
+  });
+}

@@ -62,6 +62,9 @@ export const DUREE_ENVIE_SECONDES = 10 * 60;
 /** Jour (inclus) au-delà duquel le Parcours est réservé aux abonnés. */
 export const JOUR_LIMITE_PARCOURS_GRATUIT = 7;
 
+/** Dernier jour du programme de 30 jours accessible en version gratuite. */
+export const JOUR_LIMITE_PROGRAMME_GRATUIT = 7;
+
 /** Nombre d'entrées au-delà duquel la section « Tes schémas » apparaît. */
 export const SEUIL_SCHEMAS = 10;
 

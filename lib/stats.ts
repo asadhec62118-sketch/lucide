@@ -2,6 +2,7 @@
 // statistiques du journal et règle de sécurité.
 
 import { LIMITE_ENVIES_GRATUIT, PALIERS_JOURS, SECURITE } from "./constants";
+import { NB_JOURS_PROGRAMME } from "./programme";
 import type { Envie, Etat } from "./store";
 import { debutMois, debutSemaine, joursDepuis, MS } from "./temps";
 
@@ -114,4 +115,19 @@ export function calculerSchemas(envies: Envie[]): Schemas {
     tauxResistance: envies.length ? Math.round((tenues / envies.length) * 100) : 0,
     total: envies.length,
   };
+}
+
+// --------------------------------------------------------------------------
+// Programme de 30 jours
+// --------------------------------------------------------------------------
+
+/** Jour du programme correspondant au compteur (J1 pendant les premières 24 h). */
+export function jourDuProgramme(etat: Etat, maintenant = Date.now()): number {
+  if (!etat.profil) return 1;
+  return Math.min(NB_JOURS_PROGRAMME, joursDepuis(etat.profil.dateDepart, maintenant) + 1);
+}
+
+/** Dernier jour ouvert : on ne perd jamais l'accès aux jours déjà atteints. */
+export function jourDebloque(etat: Etat, maintenant = Date.now()): number {
+  return Math.max(etat.programme.jourMax, jourDuProgramme(etat, maintenant));
 }
