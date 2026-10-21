@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SelecteurNombre } from "@/components/SelecteurNombre";
 import { Bouton, Chargement, Puce } from "@/components/ui";
 import { creerProfil } from "@/lib/actions";
 import { DECLENCHEURS, MENTION_LEGALE, RAISONS } from "@/lib/constants";
@@ -29,6 +30,7 @@ export default function Onboarding() {
   // Réponses
   const [annees, setAnnees] = useState(3);
   const [depense, setDepense] = useState("");
+  const [joints, setJoints] = useState<number | null>(3);
   const [raisons, setRaisons] = useState<string[]>([]);
   const [raisonsTexte, setRaisonsTexte] = useState("");
   const [declencheurs, setDeclencheurs] = useState<string[]>([]);
@@ -63,6 +65,7 @@ export default function Onboarding() {
       creerProfil({
         anneesConso: annees,
         depenseHebdo: Math.round(depenseNombre * 100) / 100,
+        jointsParJour: joints,
         raisons,
         raisonsTexte: raisonsTexte.trim(),
         declencheurs,
@@ -151,6 +154,25 @@ export default function Onboarding() {
               <span className="text-3xl font-bold text-texte-2">€</span>
             </label>
             <p className="mt-3 text-sm text-texte-2">par semaine</p>
+
+            {/* Facultatif : sert à estimer les joints non fumés et le temps regagné */}
+            <div className="mt-10 rounded-2xl bg-surface p-5">
+              <p className="font-semibold">Et combien de joints par jour, environ ?</p>
+              {joints !== null ? (
+                <>
+                  <div className="mt-4">
+                    <SelecteurNombre libelle="Joints par jour" valeur={joints} onChange={setJoints} unite="par jour" />
+                  </div>
+                  <button type="button" onClick={() => setJoints(null)} className="mt-4 text-sm text-texte-2 hover:text-texte">
+                    Je préfère ne pas répondre
+                  </button>
+                </>
+              ) : (
+                <button type="button" onClick={() => setJoints(3)} className="mt-3 text-sm text-ambre">
+                  Répondre finalement
+                </button>
+              )}
+            </div>
           </Etape>
         )}
 

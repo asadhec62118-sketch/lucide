@@ -12,7 +12,9 @@ function maintenantISO() {
 }
 
 /** Fin de l'onboarding : création du profil local. */
-export function creerProfil(p: Omit<Profil, "majLe" | "totalJoursPropres" | "modeFoi" | "rappelsFoi" | "modeSport">) {
+export function creerProfil(
+  p: Omit<Profil, "majLe" | "totalJoursPropres" | "modeFoi" | "rappelsFoi" | "modeSport">,
+) {
   modifierEtat((e) => ({
     ...e,
     profil: {
@@ -65,7 +67,8 @@ export function demarrerEnvie(): { envieId: string; debut: string } {
     lieu: null,
     emotion: null,
     tenue: false,
-    activiteSport: null,
+    activite: null,
+    typeActivite: null,
     majLe: debut,
   };
   modifierEtat((e) => ({

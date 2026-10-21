@@ -17,6 +17,7 @@ Application web progressive (PWA), en français, pour accompagner les personnes 
 | Parcours J1 → J90 (flouté après J7 en gratuit) | `/parcours` | ✅ |
 | Réglages : Mode Foi, Mode Sport, abonnement, aide, « J'ai consommé » | `/reglages` | ✅ (sauf paiement) |
 | Reprise : cumul de jours propres conservé | `/reprise` | ✅ |
+| Programme 30 jours tiré du livre (J1 à J7 gratuits) | `/programme` | ✅ |
 | Connexion / lien magique | `/connexion`, `/auth/callback` | — |
 
 Règle de sécurité : 3 envies d'intensité 9 ou 10 en 24 h affichent automatiquement le bloc d'aide (Drogues Info Service, Écoute Cannabis).
@@ -53,7 +54,7 @@ scripts/generer-icones.py                    régénère les icônes PNG
 ### 1. Supabase
 
 1. Crée un projet sur [supabase.com](https://supabase.com).
-2. Dans **SQL Editor**, exécute `supabase/migrations/0001_schema_lucide.sql` (ou `supabase db push` avec la CLI).
+2. Dans **SQL Editor**, exécute dans l'ordre `supabase/migrations/0001_schema_lucide.sql` puis `0002_regagne_activites.sql` (ou `supabase db push` avec la CLI).
    - Tables `profiles`, `cravings`, `reprises`, toutes avec RLS : chaque utilisateur n'accède qu'à ses lignes.
    - Un trigger crée le profil à l'inscription.
    - Les colonnes d'abonnement (`subscription_status`, `stripe_*`…) ne sont **pas** modifiables par l'utilisateur (privilèges par colonne) : seul le webhook, avec la clé `service_role`, les écrit.

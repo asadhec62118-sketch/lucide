@@ -1,16 +1,18 @@
 "use client";
 
-// RÉGLAGES — compte, abonnement Stripe, Mode Foi, Mode Sport,
+// RÉGLAGES — compte, abonnement Stripe, repères, Mode Foi, Mode Sport, partage,
 // bloc d'aide permanent et bouton discret « J'ai consommé ».
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
 import { BlocAide } from "@/components/BlocAide";
+import { SelecteurNombre } from "@/components/SelecteurNombre";
 import { Bouton, Carte, Chargement, Interrupteur, LienBouton, TitrePage } from "@/components/ui";
 import { enregistrerReprise, modifierProfil } from "@/lib/actions";
-import { TARIFS } from "@/lib/constants";
+import { SUGGESTIONS_FOI, TARIFS } from "@/lib/constants";
 import { useEtatAvecProfil } from "@/lib/hooks";
+import type { Profil } from "@/lib/store";
 import { estAbonne } from "@/lib/stats";
 import { modifierEtat, type Etat } from "@/lib/store";
 import { jetonAcces, supabaseNavigateur } from "@/lib/supabase/client";
@@ -59,13 +61,16 @@ export default function Reglages() {
 
         <BlocAbonnement etat={etat} session={session} retour={retourPaiement} />
 
+        <BlocReperes profil={profil} />
+
         {/* Mode Foi */}
         <Carte>
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-base font-semibold">Mode Foi</h2>
               <p className="mt-1 text-sm text-texte-2">
-                Tes propres rappels, affichés pendant les envies.
+                Tes propres rappels, affichés en grand pendant les envies. Ta foi, ou ce qui est plus grand que
+                toi&nbsp;: ta famille, ceux que tu aides.
               </p>
             </div>
             <Interrupteur libelle="Activer le Mode Foi" actif={profil.modeFoi} onChange={(v) => modifierProfil({ modeFoi: v })} />
@@ -81,13 +86,15 @@ export default function Reglages() {
             <div>
               <h2 className="text-base font-semibold">Mode Sport</h2>
               <p className="mt-1 text-sm text-texte-2">
-                Pendant une envie, LUCIDE te propose une alternative physique : 20 pompes, 5 minutes de
-                corde à sauter ou 10 minutes de marche.
+                Pendant une envie, le sport passe en premier&nbsp;: 20 pompes, 5 minutes de corde à sauter ou
+                10 minutes de marche. L&apos;accueil compte les envies transformées en séances.
               </p>
             </div>
             <Interrupteur libelle="Activer le Mode Sport" actif={profil.modeSport} onChange={(v) => modifierProfil({ modeSport: v })} />
           </div>
         </Carte>
+
+        <BlocPartage />
 
         <BlocAide />
 
@@ -266,6 +273,8 @@ function RappelsFoi({ rappels, onChange }: { rappels: string[]; onChange: (r: st
     setTexte("");
   }
 
+  const suggestions = SUGGESTIONS_FOI.filter((x) => !rappels.includes(x));
+
   return (
     <div className="mt-4">
       {rappels.length > 0 ? (
@@ -287,6 +296,23 @@ function RappelsFoi({ rappels, onChange }: { rappels: string[]; onChange: (r: st
       ) : (
         <p className="text-sm text-texte-2">Ajoute une phrase, un verset, une intention qui te porte.</p>
       )}
+      {suggestions.length > 0 && (
+        <div className="mt-4">
+          <p className="text-xs text-texte-2">Des idées, si tu veux (touche pour ajouter)&nbsp;:</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {suggestions.map((x) => (
+              <button
+                key={x}
+                type="button"
+                onClick={() => onChange([...rappels, x])}
+                className="rounded-2xl border border-bord px-3 py-2 text-left text-xs text-texte-2 transition hover:border-ambre hover:text-texte"
+              >
+                + {x}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <form onSubmit={ajouter} className="mt-3 flex gap-2">
         <input
           value={texte}
@@ -301,5 +327,88 @@ function RappelsFoi({ rappels, onChange }: { rappels: string[]; onChange: (r: st
         </Bouton>
       </form>
     </div>
+  );
+}
+
+/** Repères de l'onboarding, modifiables : dépense par semaine et joints par jour. */
+function BlocReperes({ profil }: { profil: Profil }) {
+  const [depense, setDepense] = useState(String(profil.depenseHebdo).replace(".", ","));
+
+  function enregistrerDepense() {
+    const n = Number(depense.replace(",", "."));
+    if (Number.isFinite(n) && n >= 0) modifierProfil({ depenseHebdo: Math.round(n * 100) / 100 });
+    else setDepense(String(profil.depenseHebdo).replace(".", ","));
+  }
+
+  return (
+    <section id="reperes" className="scroll-mt-6 rounded-2xl bg-surface p-5">
+      <h2 className="text-base font-semibold">Tes repères</h2>
+      <p className="mt-1 text-sm text-texte-2">Ils servent à calculer ce que tu as regagné.</p>
+
+      <label className="mt-4 block text-sm text-texte-2" htmlFor="depense">
+        Dépense par semaine avant l&apos;arrêt
+      </label>
+      <div className="mt-2 flex items-center rounded-2xl border border-bord bg-surface-2 px-4 focus-within:border-ambre">
+        <input
+          id="depense"
+          type="text"
+          inputMode="decimal"
+          value={depense}
+          onChange={(e) => setDepense(e.target.value.replace(/[^\d.,]/g, ""))}
+          onBlur={enregistrerDepense}
+          className="chiffres w-full bg-transparent py-3 text-lg font-semibold outline-none"
+        />
+        <span className="text-texte-2">€</span>
+      </div>
+
+      <p className="mt-5 text-sm text-texte-2">Joints par jour avant l&apos;arrêt</p>
+      {profil.jointsParJour !== null ? (
+        <div className="mt-2">
+          <SelecteurNombre
+            libelle="Joints par jour"
+            valeur={profil.jointsParJour}
+            onChange={(v) => modifierProfil({ jointsParJour: v })}
+            unite="par jour"
+          />
+        </div>
+      ) : (
+        <button type="button" onClick={() => modifierProfil({ jointsParJour: 3 })} className="mt-2 text-sm text-ambre">
+          Indiquer ce nombre
+        </button>
+      )}
+    </section>
+  );
+}
+
+/** Transmission (Jour 26) : partager LUCIDE discrètement, sans faire la leçon. */
+function BlocPartage() {
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function partager() {
+    const url = window.location.origin;
+    const texte = "Je sais ce que tu ressens. Moi, LUCIDE m'aide à arrêter le cannabis, jour après jour.";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "LUCIDE", text: texte, url });
+        return;
+      }
+      await navigator.clipboard.writeText(`${texte} ${url}`);
+      setMessage("Lien copié. Tu peux le coller dans un message.");
+    } catch {
+      // Partage annulé par l'utilisateur : rien à faire.
+    }
+  }
+
+  return (
+    <Carte>
+      <h2 className="text-base font-semibold">Aider quelqu&apos;un</h2>
+      <p className="mt-1 text-sm text-texte-2">
+        Tu connais quelqu&apos;un qui en a besoin&nbsp;? Pas de leçon, pas de morale&nbsp;: juste une main tendue.
+      </p>
+      <Bouton variante="surface" onClick={partager} className="mt-4 w-full">
+        Partager LUCIDE
+      </Bouton>
+      {message && <p className="mt-2 text-center text-sm text-vert">{message}</p>}
+    </Carte>
   );
 }

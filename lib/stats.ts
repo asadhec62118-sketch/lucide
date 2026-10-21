@@ -1,10 +1,10 @@
 // Calculs dérivés des données locales : abonnement, limites gratuites,
 // statistiques du journal et règle de sécurité.
 
-import { LIMITE_ENVIES_GRATUIT, PALIERS_JOURS, SECURITE } from "./constants";
+import { LIMITE_ENVIES_GRATUIT, MINUTES_PAR_JOINT, PALIERS_JOURS, SECURITE } from "./constants";
 import { NB_JOURS_PROGRAMME } from "./programme";
 import type { Envie, Etat } from "./store";
-import { debutMois, debutSemaine, joursDepuis, MS } from "./temps";
+import { debutMois, debutSemaine, joursDecimaux, joursDepuis, MS } from "./temps";
 
 /** Statuts Stripe qui donnent accès aux fonctionnalités abonnées. */
 export function estAbonne(etat: Etat): boolean {
@@ -31,7 +31,25 @@ export function enviesTenuesCeMois(envies: Envie[], maintenant = new Date()): nu
 
 /** Envies transformées en séance de sport. */
 export function enviesEnSeances(envies: Envie[]): number {
-  return envies.filter((e) => e.activiteSport).length;
+  return envies.filter((e) => e.activite && e.typeActivite === "sport").length;
+}
+
+/** Envies transformées en une activité qui a de la valeur, quelle qu'elle soit. */
+export function enviesTransformees(envies: Envie[]): number {
+  return envies.filter((e) => e.activite).length;
+}
+
+/** « Ce que tu as regagné » : estimations à partir des réponses de l'onboarding. */
+export function ceQueTuAsRegagne(etat: Etat, maintenant = Date.now()) {
+  if (!etat.profil) return null;
+  const jours = joursDecimaux(etat.profil.dateDepart, maintenant);
+  const jointsEvites =
+    etat.profil.jointsParJour !== null ? Math.floor(etat.profil.jointsParJour * jours) : null;
+  return {
+    jointsEvites,
+    heures: jointsEvites !== null ? Math.floor((jointsEvites * MINUTES_PAR_JOINT) / 60) : null,
+    enviesTraversees: etat.envies.filter((e) => e.tenue).length,
+  };
 }
 
 /**

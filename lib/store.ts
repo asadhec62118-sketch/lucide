@@ -11,6 +11,8 @@ import { useSyncExternalStore } from "react";
 export type Profil = {
   anneesConso: number;
   depenseHebdo: number;
+  /** Nombre de joints par jour avant l'arrêt (facultatif, pour « Ce que tu as regagné »). */
+  jointsParJour: number | null;
   raisons: string[];
   raisonsTexte: string;
   declencheurs: string[];
@@ -35,7 +37,9 @@ export type Envie = {
   emotion: string | null;
   /** true quand la séquence du Mode Envie est allée jusqu'au bout. */
   tenue: boolean;
-  activiteSport: string | null;
+  /** Activité choisie pour remplacer l'envie (« Remplacer pour acquérir »). */
+  activite: string | null;
+  typeActivite: string | null;
   majLe: string;
 };
 
@@ -109,6 +113,16 @@ function charger(): Etat {
     return {
       ...ETAT_INITIAL,
       ...lu,
+      profil: lu.profil ? { ...lu.profil, jointsParJour: lu.profil.jointsParJour ?? null } : null,
+      // Anciennes versions : l'activité s'appelait « activiteSport ».
+      envies: (lu.envies ?? []).map((e) => {
+        const ancienne = e as Envie & { activiteSport?: string | null };
+        return {
+          ...e,
+          activite: e.activite ?? ancienne.activiteSport ?? null,
+          typeActivite: e.typeActivite ?? (ancienne.activiteSport ? "sport" : null),
+        };
+      }),
       abonnement: { ...ETAT_INITIAL.abonnement, ...lu.abonnement },
       programme: { ...ETAT_INITIAL.programme, ...lu.programme },
       aSynchroniser: { ...ETAT_INITIAL.aSynchroniser, ...lu.aSynchroniser },

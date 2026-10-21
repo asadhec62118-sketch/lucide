@@ -5,7 +5,7 @@
 //   b) respiration 4-7-8
 //   c) raisons personnelles en très grand (+ rappels du Mode Foi)
 //   d) rappel des jours tenus
-//   (+) alternative physique si le Mode Sport est actif
+//   (+) « Remplacer pour acquérir » : une activité qui a de la valeur
 //   e) journal rapide en 4 taps
 //   → écran final « Tu as tenu ».
 // Version gratuite : 3 utilisations par semaine.
@@ -18,20 +18,23 @@ import { Respiration } from "@/components/Respiration";
 import { Bouton, Chargement, LienBouton, Puce } from "@/components/ui";
 import { demarrerEnvie, memoriserEtapeEnvie, modifierEnvie, quitterEnvie, terminerEnvie } from "@/lib/actions";
 import {
-  ACTIVITES_SPORT,
+  CATEGORIES_ACTIVITES,
   DECLENCHEURS,
   DUREE_ENVIE_SECONDES,
   EMOTIONS,
   LIEUX,
   LIMITE_ENVIES_GRATUIT,
   TARIFS,
+  TEXTE_ALCOOL,
+  type Activite,
+  type CategorieActivite,
 } from "@/lib/constants";
 import { useEtatAvecProfil, useMaintenant } from "@/lib/hooks";
 import { alerteSecurite, enviesRestantes, enviesTenuesCeMois } from "@/lib/stats";
 import { lireEtat } from "@/lib/store";
 import { deuxChiffres, joursDepuis, MS, ordinalFeminin, pluriel } from "@/lib/temps";
 
-type Etape = "minuteur" | "respiration" | "raisons" | "rappel" | "sport" | "journal" | "fin" | "limite";
+type Etape = "minuteur" | "respiration" | "raisons" | "rappel" | "remplacer" | "journal" | "fin" | "limite";
 
 export default function ModeEnvie() {
   const etat = useEtatAvecProfil();
@@ -51,7 +54,8 @@ export default function ModeEnvie() {
       return;
     }
     setSession(demarrerEnvie());
-    setEtape(sessionActive ? (s.etape as Etape) : "minuteur");
+    // « sport » : nom de l'étape « remplacer » dans les versions précédentes.
+    setEtape(sessionActive ? ((s.etape === "sport" ? "remplacer" : s.etape) as Etape) : "minuteur");
   }, [etat]);
 
   const aller = useCallback((suivante: Etape) => {
@@ -68,7 +72,7 @@ export default function ModeEnvie() {
     router.replace("/");
   }
 
-  const ordre: Etape[] = ["minuteur", "respiration", "raisons", "rappel", ...(profil.modeSport ? (["sport"] as Etape[]) : []), "journal"];
+  const ordre: Etape[] = ["minuteur", "respiration", "raisons", "rappel", "remplacer", "journal"];
   const suivante = (e: Etape) => ordre[Math.min(ordre.indexOf(e) + 1, ordre.length - 1)];
 
   return (
@@ -129,10 +133,12 @@ export default function ModeEnvie() {
           </section>
         )}
 
-        {etape === "sport" && session && (
-          <EtapeSport
-            onFait={(activite) => {
-              modifierEnvie(session.envieId, { activiteSport: activite });
+        {etape === "remplacer" && session && (
+          <EtapeRemplacer
+            modeSport={profil.modeSport}
+            modeFoi={profil.modeFoi}
+            onFait={(activite, type) => {
+              modifierEnvie(session.envieId, { activite, typeActivite: type });
               aller("journal");
             }}
             onPasser={() => aller("journal")}
@@ -149,7 +155,7 @@ export default function ModeEnvie() {
           />
         )}
 
-        {etape === "fin" && <EcranFinal />}
+        {etape === "fin" && session && <EcranFinal envieId={session.envieId} />}
       </div>
     </main>
   );
@@ -201,6 +207,10 @@ function EtapeMinuteur({ debut, onSuivant }: { debut: string; onSuivant: () => v
       <p className="mt-8 text-2xl leading-snug font-semibold">
         Une envie dure rarement plus de 10 minutes. Reste avec moi.
       </p>
+      <p className="mt-4 leading-relaxed text-texte-2">
+        Une envie, c&apos;est une vague&nbsp;: elle monte, elle atteint un sommet, puis elle redescend. Chaque
+        minute que tu tiens, c&apos;est du chemin parcouru.
+      </p>
       <div className="mt-auto w-full pt-10">
         <Bouton onClick={onSuivant} className="w-full">
           Respirer avec moi
@@ -240,20 +250,36 @@ function EtapeRaisons({ raisons, onSuivant }: { raisons: string[]; onSuivant: ()
   );
 }
 
-/** Mode Sport : alternative physique proposée en étape supplémentaire. */
-function EtapeSport({ onFait, onPasser }: { onFait: (activite: string) => void; onPasser: () => void }) {
-  const [choix, setChoix] = useState<string | null>(null);
-  const activite = ACTIVITES_SPORT.find((a) => a.id === choix);
+/**
+ * « Remplacer pour acquérir » : au lieu de rester face à l'envie, on va vers
+ * une activité qui a de la valeur. Le Mode Sport met le sport en avant,
+ * la catégorie foi n'apparaît que si le Mode Foi est actif.
+ */
+function EtapeRemplacer({
+  modeSport,
+  modeFoi,
+  onFait,
+  onPasser,
+}: {
+  modeSport: boolean;
+  modeFoi: boolean;
+  onFait: (activite: string, type: CategorieActivite) => void;
+  onPasser: () => void;
+}) {
+  const [choix, setChoix] = useState<{ activite: Activite; type: CategorieActivite } | null>(null);
+  const categories = CATEGORIES_ACTIVITES.filter((c) => c.id !== "foi" || modeFoi);
 
-  if (activite) {
+  if (choix) {
     return (
       <section className="flex flex-1 flex-col text-center">
         <p className="text-sm text-texte-2">C&apos;est parti</p>
-        <h1 className="mt-4 text-4xl font-bold">{activite.titre}</h1>
-        <p className="mt-3 text-texte-2">{activite.detail}</p>
-        <p className="mt-8 text-lg">Transforme cette énergie. Reviens ici quand c&apos;est fait.</p>
+        <h1 className="mt-4 text-4xl font-bold">{choix.activite.titre}</h1>
+        <p className="mt-3 text-texte-2">{choix.activite.detail}</p>
+        <p className="mt-8 text-lg">
+          Une fois que c&apos;est fait, tu seras content que ce soit fait. Reviens ici quand tu as terminé.
+        </p>
         <div className="mt-auto space-y-3 pt-10">
-          <Bouton variante="vert" onClick={() => onFait(activite.titre)} className="w-full">
+          <Bouton variante="vert" onClick={() => onFait(choix.activite.titre, choix.type)} className="w-full">
             C&apos;est fait
           </Bouton>
           <Bouton variante="discret" onClick={() => setChoix(null)} className="w-full">
@@ -266,19 +292,34 @@ function EtapeSport({ onFait, onPasser }: { onFait: (activite: string) => void; 
 
   return (
     <section className="flex flex-1 flex-col">
-      <h1 className="text-3xl font-bold">Et si tu bougeais ?</h1>
-      <p className="mt-2 text-texte-2">Choisis une alternative physique.</p>
-      <div className="mt-8 space-y-3">
-        {ACTIVITES_SPORT.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            onClick={() => setChoix(a.id)}
-            className="w-full rounded-2xl border border-bord bg-surface p-5 text-left transition hover:border-vert"
-          >
-            <span className="block text-lg font-semibold">{a.titre}</span>
-            <span className="mt-1 block text-sm text-texte-2">{a.detail}</span>
-          </button>
+      <h1 className="text-3xl leading-tight font-bold">L&apos;envie, c&apos;est le canapé devant lequel tu passes.</h1>
+      <p className="mt-3 text-texte-2">
+        Ne t&apos;assois pas. Va vers quelque chose qui a de la valeur&nbsp;: tu ne remplis pas un vide, tu gagnes
+        quelque chose.
+      </p>
+      <div className="mt-6 space-y-6">
+        {categories.map((c) => (
+          <div key={c.id}>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-medium text-texte-2">
+              {c.titre}
+              {c.id === "sport" && modeSport && (
+                <span className="rounded-full bg-vert/15 px-2 py-0.5 text-[11px] text-vert">Mode Sport</span>
+              )}
+            </h2>
+            <div className="space-y-2">
+              {c.activites.map((a) => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setChoix({ activite: a, type: c.id })}
+                  className="w-full rounded-2xl border border-bord bg-surface p-4 text-left transition hover:border-vert"
+                >
+                  <span className="block font-semibold">{a.titre}</span>
+                  <span className="mt-0.5 block text-sm text-texte-2">{a.detail}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
       <div className="mt-auto pt-8">
@@ -349,11 +390,12 @@ function JournalRapide({ envieId, onTermine }: { envieId: string; onTermine: () 
 }
 
 /** Écran final, avec le bloc d'aide si la règle de sécurité se déclenche. */
-function EcranFinal() {
+function EcranFinal({ envieId }: { envieId: string }) {
   // Lecture ponctuelle : l'envie vient d'être marquée comme tenue.
   const [etat] = useState(() => lireEtat());
   const fois = enviesTenuesCeMois(etat.envies);
   const alerte = alerteSecurite(etat.envies);
+  const envie = etat.envies.find((e) => e.id === envieId);
 
   return (
     <section className="flex flex-1 flex-col text-center">
@@ -365,7 +407,21 @@ function EcranFinal() {
         <p className="mt-4 text-xl text-texte-2">
           C&apos;est la <span className="chiffres font-semibold text-texte">{ordinalFeminin(fois)}</span> fois ce mois-ci.
         </p>
+        {envie?.activite && (
+          <p className="mt-4 text-texte-2">
+            Et tu l&apos;as transformée&nbsp;: <span className="text-vert">{envie.activite.toLowerCase()}</span>.
+          </p>
+        )}
+        <p className="mt-6 max-w-xs text-sm text-texte-2">
+          Chaque envie traversée rend ton mental plus fort, marche après marche.
+        </p>
       </div>
+      {envie?.declencheur === "Alcool" && (
+        <div className="mb-6 rounded-2xl border border-ambre/40 bg-ambre/10 p-5 text-left">
+          <h2 className="font-semibold">Un mot sur l&apos;alcool</h2>
+          <p className="mt-2 text-sm leading-relaxed text-texte-2">{TEXTE_ALCOOL}</p>
+        </div>
+      )}
       {alerte && (
         <div className="mb-6 text-left">
           <BlocAide titre="Tes envies sont très fortes en ce moment. Parler à quelqu'un peut aider." accent />
